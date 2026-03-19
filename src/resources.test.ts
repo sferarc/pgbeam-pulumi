@@ -67,13 +67,13 @@ configure({ apiKey: "test-key", baseUrl: "https://api.test.com" });
 // ---------------------------------------------------------------------------
 describe("Project resource", () => {
   it("exports Project class and ProjectArgs type", async () => {
-    const { Project } = await import("./project");
+    const { Project } = await import("./project.gen");
     expect(Project).toBeDefined();
     expect(typeof Project).toBe("function");
   });
 
   it("can be instantiated with required args", async () => {
-    const { Project } = await import("./project");
+    const { Project } = await import("./project.gen");
     const project = new Project("test-project", {
       orgId: "org_123",
       name: "my-project",
@@ -90,7 +90,7 @@ describe("Project resource", () => {
 
   it("passes cloud default of 'aws' to the dynamic resource provider", async () => {
     const pulumi = await import("@pulumi/pulumi");
-    const { Project } = await import("./project");
+    const { Project } = await import("./project.gen");
     const project = new Project("test-project-defaults", {
       orgId: "org_123",
       name: "my-project",
@@ -107,7 +107,7 @@ describe("Project resource", () => {
   });
 
   it("accepts optional args", async () => {
-    const { Project } = await import("./project");
+    const { Project } = await import("./project.gen");
     const project = new Project("test-project-full", {
       orgId: "org_123",
       name: "my-project",
@@ -143,7 +143,7 @@ describe("Project resource", () => {
   });
 
   it("initializes computed outputs as undefined", async () => {
-    const { Project } = await import("./project");
+    const { Project } = await import("./project.gen");
     const project = new Project("test-project-outputs", {
       orgId: "org_123",
       name: "my-project",
@@ -166,7 +166,7 @@ describe("Project resource", () => {
   });
 
   it("accepts azure cloud provider without error", async () => {
-    const { Project } = await import("./project");
+    const { Project } = await import("./project.gen");
     const project = new Project("test-azure-project", {
       orgId: "org_123",
       name: "azure-project",
@@ -188,13 +188,13 @@ describe("Project resource", () => {
 // ---------------------------------------------------------------------------
 describe("Database resource", () => {
   it("exports Database class", async () => {
-    const { Database } = await import("./database");
+    const { Database } = await import("./database.gen");
     expect(Database).toBeDefined();
     expect(typeof Database).toBe("function");
   });
 
   it("can be instantiated with required args", async () => {
-    const { Database } = await import("./database");
+    const { Database } = await import("./database.gen");
     const db = new Database("test-db", {
       projectId: "proj_123",
       host: "replica.example.com",
@@ -207,7 +207,7 @@ describe("Database resource", () => {
   });
 
   it("accepts optional ssl and pool config", async () => {
-    const { Database } = await import("./database");
+    const { Database } = await import("./database.gen");
     const db = new Database("test-db-full", {
       projectId: "proj_123",
       host: "replica.example.com",
@@ -234,7 +234,7 @@ describe("Database resource", () => {
   });
 
   it("initializes computed outputs as undefined", async () => {
-    const { Database } = await import("./database");
+    const { Database } = await import("./database.gen");
     const db = new Database("test-db-outputs", {
       projectId: "proj_123",
       host: "replica.example.com",
@@ -250,7 +250,7 @@ describe("Database resource", () => {
   });
 
   it("accepts all SSL modes", async () => {
-    const { Database } = await import("./database");
+    const { Database } = await import("./database.gen");
     const sslModes = ["disable", "allow", "prefer", "require", "verify-ca", "verify-full"] as const;
 
     for (const sslMode of sslModes) {
@@ -268,7 +268,7 @@ describe("Database resource", () => {
   });
 
   it("accepts primary and replica roles", async () => {
-    const { Database } = await import("./database");
+    const { Database } = await import("./database.gen");
 
     const primary = new Database("test-db-primary", {
       projectId: "proj_123",
@@ -299,13 +299,13 @@ describe("Database resource", () => {
 // ---------------------------------------------------------------------------
 describe("CacheRule resource", () => {
   it("exports CacheRule class", async () => {
-    const { CacheRule } = await import("./cacheRule");
+    const { CacheRule } = await import("./cacheRule.gen");
     expect(CacheRule).toBeDefined();
     expect(typeof CacheRule).toBe("function");
   });
 
   it("can be instantiated with required args", async () => {
-    const { CacheRule } = await import("./cacheRule");
+    const { CacheRule } = await import("./cacheRule.gen");
     const rule = new CacheRule("test-rule", {
       projectId: "proj_123",
       databaseId: "db_456",
@@ -316,7 +316,7 @@ describe("CacheRule resource", () => {
   });
 
   it("accepts optional TTL and SWR overrides", async () => {
-    const { CacheRule } = await import("./cacheRule");
+    const { CacheRule } = await import("./cacheRule.gen");
     const rule = new CacheRule("test-rule-full", {
       projectId: "proj_123",
       databaseId: "db_456",
@@ -329,7 +329,7 @@ describe("CacheRule resource", () => {
   });
 
   it("accepts null TTL and SWR (use project defaults)", async () => {
-    const { CacheRule } = await import("./cacheRule");
+    const { CacheRule } = await import("./cacheRule.gen");
     const rule = new CacheRule("test-rule-defaults", {
       projectId: "proj_123",
       databaseId: "db_456",
@@ -342,7 +342,7 @@ describe("CacheRule resource", () => {
   });
 
   it("initializes computed outputs as undefined", async () => {
-    const { CacheRule } = await import("./cacheRule");
+    const { CacheRule } = await import("./cacheRule.gen");
     const rule = new CacheRule("test-rule-outputs", {
       projectId: "proj_123",
       databaseId: "db_456",
@@ -363,7 +363,7 @@ describe("CacheRule resource", () => {
   });
 
   it("can be instantiated with caching disabled", async () => {
-    const { CacheRule } = await import("./cacheRule");
+    const { CacheRule } = await import("./cacheRule.gen");
     const rule = new CacheRule("test-rule-disabled", {
       projectId: "proj_123",
       databaseId: "db_456",
@@ -379,7 +379,7 @@ describe("CacheRule resource", () => {
 // ---------------------------------------------------------------------------
 describe("CustomDomain resource", () => {
   it("exports CustomDomain class and verifyCustomDomain function", async () => {
-    const { CustomDomain, verifyCustomDomain } = await import("./customDomain");
+    const { CustomDomain, verifyCustomDomain } = await import("./customDomain.gen");
     expect(CustomDomain).toBeDefined();
     expect(typeof CustomDomain).toBe("function");
     expect(verifyCustomDomain).toBeDefined();
@@ -387,7 +387,7 @@ describe("CustomDomain resource", () => {
   });
 
   it("can be instantiated with required args", async () => {
-    const { CustomDomain } = await import("./customDomain");
+    const { CustomDomain } = await import("./customDomain.gen");
     const domain = new CustomDomain("test-domain", {
       projectId: "proj_123",
       domain: "db.example.com",
@@ -396,7 +396,7 @@ describe("CustomDomain resource", () => {
   });
 
   it("initializes computed outputs as undefined", async () => {
-    const { CustomDomain } = await import("./customDomain");
+    const { CustomDomain } = await import("./customDomain.gen");
     const domain = new CustomDomain("test-domain-outputs", {
       projectId: "proj_123",
       domain: "db.example.com",
@@ -412,7 +412,7 @@ describe("CustomDomain resource", () => {
   });
 
   it("can be instantiated with different domain names", async () => {
-    const { CustomDomain } = await import("./customDomain");
+    const { CustomDomain } = await import("./customDomain.gen");
     const domain = new CustomDomain("test-domain-args", {
       projectId: "proj_456",
       domain: "api.myapp.com",
@@ -426,13 +426,13 @@ describe("CustomDomain resource", () => {
 // ---------------------------------------------------------------------------
 describe("Replica resource", () => {
   it("exports Replica class", async () => {
-    const { Replica } = await import("./replica");
+    const { Replica } = await import("./replica.gen");
     expect(Replica).toBeDefined();
     expect(typeof Replica).toBe("function");
   });
 
   it("can be instantiated with required args", async () => {
-    const { Replica } = await import("./replica");
+    const { Replica } = await import("./replica.gen");
     const replica = new Replica("test-replica", {
       databaseId: "db_456",
       host: "replica.us-west-2.rds.amazonaws.com",
@@ -442,7 +442,7 @@ describe("Replica resource", () => {
   });
 
   it("accepts optional sslMode", async () => {
-    const { Replica } = await import("./replica");
+    const { Replica } = await import("./replica.gen");
     const replica = new Replica("test-replica-ssl", {
       databaseId: "db_456",
       host: "replica.us-west-2.rds.amazonaws.com",
@@ -453,7 +453,7 @@ describe("Replica resource", () => {
   });
 
   it("initializes computed outputs as undefined", async () => {
-    const { Replica } = await import("./replica");
+    const { Replica } = await import("./replica.gen");
     const replica = new Replica("test-replica-outputs", {
       databaseId: "db_456",
       host: "replica.us-west-2.rds.amazonaws.com",
@@ -465,7 +465,7 @@ describe("Replica resource", () => {
   });
 
   it("can be instantiated with different host and port", async () => {
-    const { Replica } = await import("./replica");
+    const { Replica } = await import("./replica.gen");
     const replica = new Replica("test-replica-args", {
       databaseId: "db_789",
       host: "replica.eu-west-1.rds.amazonaws.com",
@@ -476,7 +476,7 @@ describe("Replica resource", () => {
   });
 
   it("accepts all SSL modes", async () => {
-    const { Replica } = await import("./replica");
+    const { Replica } = await import("./replica.gen");
     const sslModes = ["disable", "allow", "prefer", "require", "verify-ca", "verify-full"] as const;
 
     for (const sslMode of sslModes) {
@@ -496,13 +496,13 @@ describe("Replica resource", () => {
 // ---------------------------------------------------------------------------
 describe("SpendLimit resource", () => {
   it("exports SpendLimit class", async () => {
-    const { SpendLimit } = await import("./spendLimit");
+    const { SpendLimit } = await import("./spendLimit.gen");
     expect(SpendLimit).toBeDefined();
     expect(typeof SpendLimit).toBe("function");
   });
 
   it("can be instantiated with required args", async () => {
-    const { SpendLimit } = await import("./spendLimit");
+    const { SpendLimit } = await import("./spendLimit.gen");
     const limit = new SpendLimit("test-limit", {
       orgId: "org_123",
       spendLimit: 500,
@@ -511,7 +511,7 @@ describe("SpendLimit resource", () => {
   });
 
   it("accepts null spend limit (no limit)", async () => {
-    const { SpendLimit } = await import("./spendLimit");
+    const { SpendLimit } = await import("./spendLimit.gen");
     const limit = new SpendLimit("test-no-limit", {
       orgId: "org_123",
       spendLimit: null,
@@ -520,7 +520,7 @@ describe("SpendLimit resource", () => {
   });
 
   it("accepts undefined spend limit", async () => {
-    const { SpendLimit } = await import("./spendLimit");
+    const { SpendLimit } = await import("./spendLimit.gen");
     const limit = new SpendLimit("test-undefined-limit", {
       orgId: "org_123",
     });
@@ -528,7 +528,7 @@ describe("SpendLimit resource", () => {
   });
 
   it("initializes computed outputs as undefined", async () => {
-    const { SpendLimit } = await import("./spendLimit");
+    const { SpendLimit } = await import("./spendLimit.gen");
     const limit = new SpendLimit("test-limit-outputs", {
       orgId: "org_123",
       spendLimit: 100,
@@ -544,7 +544,7 @@ describe("SpendLimit resource", () => {
   });
 
   it("can be instantiated with different org and limit", async () => {
-    const { SpendLimit } = await import("./spendLimit");
+    const { SpendLimit } = await import("./spendLimit.gen");
     const limit = new SpendLimit("test-limit-args", {
       orgId: "org_456",
       spendLimit: 1000,
@@ -553,7 +553,7 @@ describe("SpendLimit resource", () => {
   });
 
   it("accepts zero spend limit", async () => {
-    const { SpendLimit } = await import("./spendLimit");
+    const { SpendLimit } = await import("./spendLimit.gen");
     const limit = new SpendLimit("test-zero-limit", {
       orgId: "org_123",
       spendLimit: 0,
