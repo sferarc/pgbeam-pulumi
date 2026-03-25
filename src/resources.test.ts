@@ -114,9 +114,6 @@ describe("Project resource", () => {
       description: "A test project",
       tags: ["test", "dev"],
       cloud: "gcp",
-      queriesPerSecond: 100,
-      burstSize: 200,
-      maxConnections: 50,
       database: {
         host: "db.example.com",
         port: 5432,

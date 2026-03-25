@@ -29,12 +29,6 @@ export interface ProjectArgs {
   description?: pulumi.Input<string>;
   /** User-defined labels applied to the project. */
   tags?: pulumi.Input<pulumi.Input<string>[]>;
-  /** Maximum queries per second for this project. 0 means unlimited. */
-  queriesPerSecond?: pulumi.Input<number | null>;
-  /** Burst allowance above the steady-state rate. 0 uses queries_per_second as burst. */
-  burstSize?: pulumi.Input<number | null>;
-  /** Maximum concurrent proxy connections. 0 means unlimited. */
-  maxConnections?: pulumi.Input<number | null>;
   /** IP filtering rules as CIDR ranges with optional labels. When non-empty, only connections from matching IPs are accepted. Empty array means all IPs are allowed (default). Both IPv4 (e.g. 10.0.0.0/8) and IPv6 (e.g. 2001:db8::/32) are supported.
    */
   allowedCidrs?: pulumi.Input<pulumi.Input<string>[]>;
@@ -260,10 +254,6 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
       if (news.name !== olds.name) body.name = news.name;
       if (news.description !== olds.description) body.description = news.description;
       if (JSON.stringify(news.tags) !== JSON.stringify(olds.tags)) body.tags = news.tags;
-      if (news.queriesPerSecond !== olds.queriesPerSecond)
-        body.queries_per_second = news.queriesPerSecond;
-      if (news.burstSize !== olds.burstSize) body.burst_size = news.burstSize;
-      if (news.maxConnections !== olds.maxConnections) body.max_connections = news.maxConnections;
       if (JSON.stringify(news.allowedCidrs) !== JSON.stringify(olds.allowedCidrs))
         body.allowed_cidrs = news.allowedCidrs;
       if (news.status !== olds.status) body.status = news.status;
@@ -319,9 +309,6 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
       news.name !== olds.name ||
       news.description !== olds.description ||
       JSON.stringify(news.tags) !== JSON.stringify(olds.tags) ||
-      (news.queriesPerSecond ?? 0) !== (olds.queriesPerSecond ?? 0) ||
-      (news.burstSize ?? 0) !== (olds.burstSize ?? 0) ||
-      (news.maxConnections ?? 0) !== (olds.maxConnections ?? 0) ||
       JSON.stringify(news.allowedCidrs) !== JSON.stringify(olds.allowedCidrs) ||
       news.status !== olds.status ||
       news.orgId !== olds.orgId ||
@@ -378,6 +365,9 @@ export class Project extends pulumi.dynamic.Resource {
       {
         ...args,
         proxyHost: undefined,
+        queriesPerSecond: undefined,
+        burstSize: undefined,
+        maxConnections: undefined,
         databaseCount: undefined,
         activeConnections: undefined,
         createdAt: undefined,
