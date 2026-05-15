@@ -5,16 +5,16 @@ export type {
   CacheRuleEntry,
   CustomDomain as CustomDomainData,
   Database as DatabaseData,
-  DatabaseRole,
+  DatabaseRoleKey as DatabaseRole,
   DnsInstructions,
   OrganizationPlan,
   PlanLimits,
   PoolConfig,
-  PoolMode,
+  PoolModeKey as PoolMode,
   Project as ProjectData,
-  ProjectStatus,
+  ProjectStatusKey as ProjectStatus,
   Replica as ReplicaData,
-  SSLMode,
+  SSLModeKey as SSLMode,
 } from "pgbeam";
 export { CacheRule, type CacheRuleArgs } from "./cacheRule.gen.js";
 export { CustomDomain, type CustomDomainArgs, verifyCustomDomain } from "./customDomain.gen.js";
