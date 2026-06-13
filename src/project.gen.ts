@@ -332,7 +332,7 @@ export class Project extends pulumi.dynamic.Resource {
   public readonly tags!: pulumi.Output<string[] | undefined>;
   /** Cloud provider where the project runs. */
   public readonly cloud!: pulumi.Output<string | undefined>;
-  /** Proxy hostname for connecting through PgBeam (e.g., myproject.aws.pgbeam.app). */
+  /** Proxy hostname for connecting through PgBeam (e.g., myproject.proxy.pgbeam.app). */
   public readonly proxyHost!: pulumi.Output<string | undefined>;
   /** Maximum queries per second for this project. 0 means unlimited. */
   public readonly queriesPerSecond!: pulumi.Output<number | null>;
