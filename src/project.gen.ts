@@ -188,7 +188,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
         })) as { projects: ProjectData[] };
         const existing = list.projects.find((p) => p.name === name);
         if (existing) {
-          pulumi.log.info(`Adopting existing project "${name}" (${existing.id})`);
+          console.info(`Adopting existing project "${name}" (${existing.id})`);
           return {
             id: existing.id,
             outs: stripUndefined({
@@ -226,7 +226,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
         const matchName = String(props.name);
         const existing = list.projects.find((p) => p.name === matchName);
         if (existing) {
-          pulumi.log.info(
+          console.info(
             `Re-adopting project "${matchName}" (${existing.id}) during read after out-of-band deletion`,
           );
           return {
@@ -237,7 +237,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
             }),
           };
         }
-        pulumi.log.warn(
+        console.warn(
           `Project "${matchName}" (${id}) not found during read — it may have been deleted out-of-band.`,
         );
         return { id, props };

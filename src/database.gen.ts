@@ -226,7 +226,7 @@ const databaseProvider: pulumi.dynamic.ResourceProvider = {
       const status = apiErrorStatus(err);
       if (status === undefined || status >= 500) {
         const detail = status ? `(${status})` : `(network error)`;
-        pulumi.log.warn(
+        console.warn(
           `PgBeam API unavailable ${detail} during database update — preserving previous state.`,
         );
         return { outs: stripUndefined({ ...(olds as Record<string, unknown>) }) };
