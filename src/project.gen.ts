@@ -32,6 +32,8 @@ export interface ProjectArgs {
   /** IP filtering rules as CIDR ranges with optional labels. When non-empty, only connections from matching IPs are accepted. Empty array means all IPs are allowed (default). Both IPv4 (e.g. 10.0.0.0/8) and IPv6 (e.g. 2001:db8::/32) are supported.
    */
   allowedCidrs?: pulumi.Input<pulumi.Input<string>[]>;
+  /** When set, passthrough/human connections are enforced against this policy profile. */
+  defaultPolicyProfileId?: pulumi.Input<string>;
   /** Project lifecycle status. */
   status?: pulumi.Input<string>;
   /** Cloud provider where the project runs. */
@@ -116,6 +118,7 @@ function projectToState(r: ProjectData) {
     burstSize: r.burst_size ?? null,
     maxConnections: r.max_connections ?? null,
     allowedCidrs: r.allowed_cidrs ?? undefined,
+    defaultPolicyProfileId: r.default_policy_profile_id ?? undefined,
     databaseCount: r.database_count ?? null,
     activeConnections: r.active_connections ?? null,
     status: r.status ?? undefined,
@@ -256,6 +259,8 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
       if (JSON.stringify(news.tags) !== JSON.stringify(olds.tags)) body.tags = news.tags;
       if (JSON.stringify(news.allowedCidrs) !== JSON.stringify(olds.allowedCidrs))
         body.allowed_cidrs = news.allowedCidrs;
+      if (news.defaultPolicyProfileId !== olds.defaultPolicyProfileId)
+        body.default_policy_profile_id = news.defaultPolicyProfileId;
       if (news.status !== olds.status) body.status = news.status;
 
       if (Object.keys(body).length > 0) {
@@ -310,6 +315,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
       news.description !== olds.description ||
       JSON.stringify(news.tags) !== JSON.stringify(olds.tags) ||
       JSON.stringify(news.allowedCidrs) !== JSON.stringify(olds.allowedCidrs) ||
+      news.defaultPolicyProfileId !== olds.defaultPolicyProfileId ||
       news.status !== olds.status ||
       news.orgId !== olds.orgId ||
       replaces.length > 0;
@@ -343,6 +349,8 @@ export class Project extends pulumi.dynamic.Resource {
   /** IP filtering rules as CIDR ranges with optional labels. When non-empty, only connections from matching IPs are accepted. Empty array means all IPs are allowed (default). Both IPv4 (e.g. 10.0.0.0/8) and IPv6 (e.g. 2001:db8::/32) are supported.
    */
   public readonly allowedCidrs!: pulumi.Output<string[] | undefined>;
+  /** When set, passthrough/human connections are enforced against this policy profile. */
+  public readonly defaultPolicyProfileId!: pulumi.Output<string | undefined>;
   /** Number of databases attached to this project. */
   public readonly databaseCount!: pulumi.Output<number | null>;
   /** Current active connections (latest metrics snapshot). 0 when no metrics data. */
