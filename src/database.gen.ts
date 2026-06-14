@@ -313,6 +313,10 @@ export class Database extends pulumi.dynamic.Resource {
   public readonly password!: pulumi.Output<string>;
 
   constructor(name: string, args: DatabaseArgs, opts?: pulumi.CustomResourceOptions) {
+    opts = {
+      ...opts,
+      additionalSecretOutputs: [...(opts?.additionalSecretOutputs ?? []), "password"],
+    };
     super(
       databaseProvider,
       name,

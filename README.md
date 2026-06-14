@@ -34,14 +34,52 @@ const database = new pgbeam.Database("primary", {
 
 ## Resources
 
-| Resource              | Description                          |
-| --------------------- | ------------------------------------ |
-| `pgbeam.Project`      | PgBeam project                       |
-| `pgbeam.Database`     | PostgreSQL database connection       |
-| `pgbeam.Replica`      | Read replica configuration           |
-| `pgbeam.CustomDomain` | Custom domain for connection strings |
-| `pgbeam.CacheRule`    | Query caching rule                   |
-| `pgbeam.SpendLimit`   | Budget controls                      |
+| Resource                 | Description                          |
+| ------------------------ | ------------------------------------ |
+| `pgbeam.Project`         | PgBeam project                       |
+| `pgbeam.Database`        | PostgreSQL database connection       |
+| `pgbeam.Replica`         | Read replica configuration           |
+| `pgbeam.CustomDomain`    | Custom domain for connection strings |
+| `pgbeam.CacheRule`       | Query caching rule                   |
+| `pgbeam.SpendLimit`      | Budget controls                      |
+| `pgbeam.AgentCredential` | Scoped agent credential              |
+| `pgbeam.WebhookEndpoint` | Event delivery endpoint              |
+
+## Agent gateway
+
+The agent gateway issues scoped,
+policy-enforced credentials for AI agents and delivers audit/anomaly events to
+webhook endpoints.
+
+```typescript
+const audit = new pgbeam.WebhookEndpoint("audit", {
+  projectId: project.id,
+  url: "https://example.com/hooks/pgbeam",
+  format: "json",
+  eventTypes: ["blocked", "anomaly", "approval"],
+  secret: config.requireSecret("webhookSecret"), // write-only
+  enabled: true,
+});
+
+const agent = new pgbeam.AgentCredential("analytics", {
+  projectId: project.id,
+  policyProfileId: policyProfileId,
+  name: "Claude Code (analytics)",
+  principalType: "agent",
+});
+
+// One-time secrets, returned only at creation. connectionString and mcpToken are
+// marked as Pulumi secrets (additionalSecretOutputs); mcpUrl is not secret.
+export const agentConnectionString = agent.connectionString;
+export const agentMcpUrl = agent.mcpUrl;
+export const agentMcpToken = agent.mcpToken;
+```
+
+> **Agent credential secrets caveat.** `connectionString` and `mcpToken` are
+> generated once at creation and never returned by subsequent reads. They are
+> stored in Pulumi state as encrypted secret outputs. To rotate, replace the
+> resource (`pulumi up` after `pulumi state delete` / a `replaceOnChanges`-style
+> change to a `name`/immutable input).
 
 ## Authentication
 
