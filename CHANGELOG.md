@@ -1,5 +1,12 @@
 # @pgbeam/pulumi
 
+## 0.1.12
+
+### Patch Changes
+
+- Updated dependencies [f2d1f56]
+  - pgbeam@0.3.2
+
 ## 0.1.11
 
 ### Patch Changes
