@@ -81,6 +81,13 @@ export const agentMcpToken = agent.mcpToken;
 > resource (`pulumi up` after `pulumi state delete` / a `replaceOnChanges`-style
 > change to a `name`/immutable input).
 
+> **Policy profiles are not yet managed as code.** `policyProfileId` (above, and
+> `defaultPolicyProfileId` on a `Project`) is the ID of a policy profile that
+> must be created out of band with `pgbeam policies create` or the dashboard —
+> there is no `PolicyProfile` resource yet. The policy itself, the most
+> security-sensitive primitive, therefore lives outside your reviewed IaC flow
+> and is invisible to `pulumi preview` drift detection.
+
 ## Authentication
 
 Set the `PGBEAM_API_TOKEN` environment variable or configure it via Pulumi
