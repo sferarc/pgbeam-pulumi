@@ -4,18 +4,23 @@ export type {
   AgentCredential as AgentCredentialData,
   CacheConfig,
   CacheRuleEntry,
+  CidrEntry,
   CustomDomain as CustomDomainData,
   Database as DatabaseData,
   DatabaseRoleKey as DatabaseRole,
   DnsInstructions,
+  MaskingRule,
   OrganizationPlan,
   PlanLimits,
+  PolicyProfile as PolicyProfileData,
   PoolConfig,
   PoolModeKey as PoolMode,
   Project as ProjectData,
   ProjectStatusKey as ProjectStatus,
   Replica as ReplicaData,
+  RowFilter,
   SSLModeKey as SSLMode,
+  StatementRules,
   WebhookEndpoint as WebhookEndpointData,
 } from "pgbeam";
 export { AgentCredential, type AgentCredentialArgs } from "./agentCredential.gen.js";
@@ -27,7 +32,19 @@ export {
   type DatabaseArgs,
   type PoolConfigArgs,
 } from "./database.gen.js";
-export { Project, type ProjectArgs, type ProjectDatabaseArgs } from "./project.gen.js";
+export {
+  type MaskingRuleArgs,
+  PolicyProfile,
+  type PolicyProfileArgs,
+  type RowFilterArgs,
+  type StatementRulesArgs,
+} from "./policyProfile.gen.js";
+export {
+  type CidrEntryArgs,
+  Project,
+  type ProjectArgs,
+  type ProjectDatabaseArgs,
+} from "./project.gen.js";
 export { configure } from "./provider.js";
 export { Replica, type ReplicaArgs } from "./replica.gen.js";
 export { SpendLimit, type SpendLimitArgs } from "./spendLimit.gen.js";
