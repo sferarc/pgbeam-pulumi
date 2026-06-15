@@ -49,6 +49,9 @@ export interface ProjectArgs {
   allowedCidrs?: pulumi.Input<pulumi.Input<CidrEntryArgs>[]>;
   /** When set, passthrough/human connections are enforced against this policy profile. */
   defaultPolicyProfileId?: pulumi.Input<string>;
+  /** Project-level kill-switch. When true, ALL agent-credential connections to this project are blocked at the proxy and live agent sessions are dropped within seconds. Passthrough/human connections are unaffected.
+   */
+  agentsDisabled?: pulumi.Input<boolean>;
   /** Project lifecycle status. */
   status?: pulumi.Input<string>;
   /** Cloud provider where the project runs. */
@@ -134,6 +137,7 @@ function projectToState(r: ProjectData) {
     maxConnections: r.max_connections ?? null,
     allowedCidrs: r.allowed_cidrs ?? undefined,
     defaultPolicyProfileId: r.default_policy_profile_id ?? undefined,
+    agentsDisabled: r.agents_disabled ?? undefined,
     databaseCount: r.database_count ?? null,
     activeConnections: r.active_connections ?? null,
     status: r.status ?? undefined,
@@ -278,6 +282,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
         );
       if (news.defaultPolicyProfileId !== olds.defaultPolicyProfileId)
         body.default_policy_profile_id = news.defaultPolicyProfileId;
+      if (news.agentsDisabled !== olds.agentsDisabled) body.agents_disabled = news.agentsDisabled;
       if (news.status !== olds.status) body.status = news.status;
 
       if (Object.keys(body).length > 0) {
@@ -333,6 +338,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
       JSON.stringify(news.tags) !== JSON.stringify(olds.tags) ||
       JSON.stringify(news.allowedCidrs) !== JSON.stringify(olds.allowedCidrs) ||
       news.defaultPolicyProfileId !== olds.defaultPolicyProfileId ||
+      news.agentsDisabled !== olds.agentsDisabled ||
       news.status !== olds.status ||
       news.orgId !== olds.orgId ||
       replaces.length > 0;
@@ -368,6 +374,9 @@ export class Project extends pulumi.dynamic.Resource {
   public readonly allowedCidrs!: pulumi.Output<CidrEntry[] | undefined>;
   /** When set, passthrough/human connections are enforced against this policy profile. */
   public readonly defaultPolicyProfileId!: pulumi.Output<string | undefined>;
+  /** Project-level kill-switch. When true, ALL agent-credential connections to this project are blocked at the proxy and live agent sessions are dropped within seconds. Passthrough/human connections are unaffected.
+   */
+  public readonly agentsDisabled!: pulumi.Output<boolean | undefined>;
   /** Number of databases attached to this project. */
   public readonly databaseCount!: pulumi.Output<number | null>;
   /** Current active connections (latest metrics snapshot). 0 when no metrics data. */
