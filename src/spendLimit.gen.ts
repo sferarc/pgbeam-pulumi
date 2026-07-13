@@ -33,6 +33,8 @@ function spendLimitToState(r: OrganizationPlan) {
     enabled: r.enabled ?? undefined,
     customPricing: r.custom_pricing ?? undefined,
     spendLimit: r.spend_limit ?? null,
+    spendCapped: r.spend_capped ?? undefined,
+    spendCappedAt: r.spend_capped_at ?? undefined,
     limits: r.limits
       ? {
           queriesPerDay: r.limits.queries_per_day,
@@ -167,6 +169,10 @@ export class SpendLimit extends pulumi.dynamic.Resource {
   public readonly customPricing!: pulumi.Output<boolean | undefined>;
   /** Monthly spend limit in dollars. Null means no limit. */
   public readonly spendLimit!: pulumi.Output<number | null>;
+  /** Whether the organization has hit its spend limit and agent access is paused at the proxy. Lifts automatically when usage resets for the new billing period, or immediately when the spend limit is raised or removed. */
+  public readonly spendCapped!: pulumi.Output<boolean | undefined>;
+  /** When the spend cap was applied. Null when not capped. */
+  public readonly spendCappedAt!: pulumi.Output<string | undefined>;
   /** Effective usage limits enforced for an organization plan. */
   public readonly limits!: pulumi.Output<Limits | undefined>;
   /** When the billing record was created. */
@@ -187,6 +193,8 @@ export class SpendLimit extends pulumi.dynamic.Resource {
         currentPeriodEnd: undefined,
         enabled: undefined,
         customPricing: undefined,
+        spendCapped: undefined,
+        spendCappedAt: undefined,
         limits: undefined,
         createdAt: undefined,
         updatedAt: undefined,
