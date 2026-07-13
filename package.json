@@ -46,6 +46,7 @@
     "@pulumi/pulumi": "catalog:peers"
   },
   "devDependencies": {
-    "@pulumi/pulumi": "catalog:peers"
+    "@pulumi/pulumi": "catalog:peers",
+    "typescript": "catalog:pulumi"
   }
 }
