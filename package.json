@@ -45,5 +45,7 @@
   "peerDependencies": {
     "@pulumi/pulumi": "catalog:peers"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@pulumi/pulumi": "catalog:peers"
+  }
 }
