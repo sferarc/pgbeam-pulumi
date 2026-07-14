@@ -91,6 +91,8 @@ export interface PolicyProfileArgs {
   migrationSafety?: pulumi.Input<string>;
   /** Per-day egress budget in bytes. 0 means unlimited. */
   egressBytesPerDay?: pulumi.Input<number | null>;
+  /** Hard cap on rows a single write (INSERT/UPDATE/DELETE) may affect. A write whose affected-row count would exceed this is executed inside a transaction, checked, and rolled back so nothing persists, then blocked. Enforced independently of human approval. 0 means unlimited. */
+  maxAffectedRows?: pulumi.Input<number | null>;
 }
 
 function policyProfileToState(r: PolicyProfileData) {
@@ -118,6 +120,7 @@ function policyProfileToState(r: PolicyProfileData) {
     approvalTimeoutSeconds: r.approval_timeout_seconds ?? null,
     migrationSafety: r.migration_safety ?? undefined,
     egressBytesPerDay: r.egress_bytes_per_day ?? null,
+    maxAffectedRows: r.max_affected_rows ?? null,
     createdAt: r.created_at ?? undefined,
     updatedAt: r.updated_at ?? undefined,
   };
@@ -154,6 +157,7 @@ const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
           approval_timeout_seconds: inputs.approvalTimeoutSeconds as number | undefined,
           migration_safety: inputs.migrationSafety as "off" | "warn" | "block" | undefined,
           egress_bytes_per_day: inputs.egressBytesPerDay as number | undefined,
+          max_affected_rows: inputs.maxAffectedRows as number | undefined,
         },
       });
 
@@ -272,6 +276,8 @@ const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
         body.migration_safety = news.migrationSafety;
       if (news.egressBytesPerDay !== olds.egressBytesPerDay)
         body.egress_bytes_per_day = news.egressBytesPerDay;
+      if (news.maxAffectedRows !== olds.maxAffectedRows)
+        body.max_affected_rows = news.maxAffectedRows;
 
       if (Object.keys(body).length > 0) {
         await api.policies.updatePolicyProfile({
@@ -343,6 +349,7 @@ const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
       (news.approvalTimeoutSeconds ?? 0) !== (olds.approvalTimeoutSeconds ?? 0) ||
       news.migrationSafety !== olds.migrationSafety ||
       (news.egressBytesPerDay ?? 0) !== (olds.egressBytesPerDay ?? 0) ||
+      (news.maxAffectedRows ?? 0) !== (olds.maxAffectedRows ?? 0) ||
       news.projectId !== olds.projectId ||
       replaces.length > 0;
 
@@ -390,6 +397,8 @@ export class PolicyProfile extends pulumi.dynamic.Resource {
   public readonly migrationSafety!: pulumi.Output<string | undefined>;
   /** Per-day egress budget in bytes. 0 means unlimited. */
   public readonly egressBytesPerDay!: pulumi.Output<number | null>;
+  /** Hard cap on rows a single write (INSERT/UPDATE/DELETE) may affect. A write whose affected-row count would exceed this is executed inside a transaction, checked, and rolled back so nothing persists, then blocked. Enforced independently of human approval. 0 means unlimited. */
+  public readonly maxAffectedRows!: pulumi.Output<number | null>;
   /** When the policy profile was created. */
   public readonly createdAt!: pulumi.Output<string | undefined>;
   /** When the policy profile was last updated. */
