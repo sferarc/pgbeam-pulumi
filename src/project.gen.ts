@@ -341,7 +341,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
     const replaces: string[] = [];
     if (news.orgId !== olds.orgId) replaces.push("orgId");
     if ((news.cloud ?? "aws") !== (olds.cloud ?? "aws")) replaces.push("cloud");
-    if ((news.selfHosted ?? "") !== (olds.selfHosted ?? "")) replaces.push("selfHosted");
+    if ((news.selfHosted ?? false) !== (olds.selfHosted ?? false)) replaces.push("selfHosted");
 
     const changes =
       news.name !== olds.name ||
