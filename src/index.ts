@@ -8,6 +8,7 @@ export type {
   CustomDomain as CustomDomainData,
   Database as DatabaseData,
   DatabaseRoleKey as DatabaseRole,
+  DataResidencyKey as DataResidency,
   DnsInstructions,
   MaskingRule,
   OrganizationPlan,

@@ -49,6 +49,9 @@ export interface ProjectArgs {
   allowedCidrs?: pulumi.Input<pulumi.Input<CidrEntryArgs>[]>;
   /** When set, passthrough/human connections are enforced against this policy profile. */
   defaultPolicyProfileId?: pulumi.Input<string>;
+  /** Data-residency requirement for the project. "any" (default) lets queries be served from the nearest data-plane metro. "us" or "eu" require the serving metro to be in that jurisdiction; the proxy fails a connection closed when it is served from a metro outside the required jurisdiction, so regulated workloads never process outside their permitted region.
+   */
+  residency?: pulumi.Input<string>;
   /** Project-level kill-switch. When true, ALL agent-credential connections to this project are blocked at the proxy and live agent sessions are dropped within seconds. Passthrough/human connections are unaffected.
    */
   agentsDisabled?: pulumi.Input<boolean>;
@@ -137,6 +140,7 @@ function projectToState(r: ProjectData) {
     maxConnections: r.max_connections ?? null,
     allowedCidrs: r.allowed_cidrs ?? undefined,
     defaultPolicyProfileId: r.default_policy_profile_id ?? undefined,
+    residency: r.residency ?? undefined,
     agentsDisabled: r.agents_disabled ?? undefined,
     databaseCount: r.database_count ?? null,
     activeConnections: r.active_connections ?? null,
@@ -282,6 +286,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
         );
       if (news.defaultPolicyProfileId !== olds.defaultPolicyProfileId)
         body.default_policy_profile_id = news.defaultPolicyProfileId;
+      if (news.residency !== olds.residency) body.residency = news.residency;
       if (news.agentsDisabled !== olds.agentsDisabled) body.agents_disabled = news.agentsDisabled;
       if (news.status !== olds.status) body.status = news.status;
 
@@ -338,6 +343,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
       JSON.stringify(news.tags) !== JSON.stringify(olds.tags) ||
       JSON.stringify(news.allowedCidrs) !== JSON.stringify(olds.allowedCidrs) ||
       news.defaultPolicyProfileId !== olds.defaultPolicyProfileId ||
+      news.residency !== olds.residency ||
       news.agentsDisabled !== olds.agentsDisabled ||
       news.status !== olds.status ||
       news.orgId !== olds.orgId ||
@@ -374,6 +380,9 @@ export class Project extends pulumi.dynamic.Resource {
   public readonly allowedCidrs!: pulumi.Output<CidrEntry[] | undefined>;
   /** When set, passthrough/human connections are enforced against this policy profile. */
   public readonly defaultPolicyProfileId!: pulumi.Output<string | undefined>;
+  /** Data-residency requirement for the project. "any" (default) lets queries be served from the nearest data-plane metro. "us" or "eu" require the serving metro to be in that jurisdiction; the proxy fails a connection closed when it is served from a metro outside the required jurisdiction, so regulated workloads never process outside their permitted region.
+   */
+  public readonly residency!: pulumi.Output<string | undefined>;
   /** Project-level kill-switch. When true, ALL agent-credential connections to this project are blocked at the proxy and live agent sessions are dropped within seconds. Passthrough/human connections are unaffected.
    */
   public readonly agentsDisabled!: pulumi.Output<boolean | undefined>;
