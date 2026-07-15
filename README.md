@@ -12,38 +12,47 @@ npm install @pgbeam/pulumi
 
 ## Usage
 
+A project is created together with its primary database in one call, so pass the
+upstream connection as the required `database` object. A project has no `region`;
+PgBeam serves every project from every region and routes each client to the
+nearest one automatically.
+
 ```typescript
+import * as pulumi from "@pulumi/pulumi";
 import * as pgbeam from "@pgbeam/pulumi";
+
+const config = new pulumi.Config();
 
 const project = new pgbeam.Project("my-project", {
   name: "my-project",
   orgId: "org_123",
-  region: "us-east-1",
-});
-
-const database = new pgbeam.Database("primary", {
-  projectId: project.id,
-  name: "primary",
-  host: "your-db-host.example.com",
-  port: 5432,
-  database: "mydb",
-  username: "dbuser",
-  password: config.requireSecret("dbPassword"),
+  database: {
+    host: "your-db-host.example.com",
+    port: 5432,
+    name: "mydb",
+    username: "dbuser",
+    password: config.requireSecret("dbPassword"),
+    sslMode: "require",
+  },
 });
 ```
 
+To attach more databases later (for example a read replica), use the standalone
+`pgbeam.Database` resource with its own `projectId`, `name`, and credentials.
+
 ## Resources
 
-| Resource                 | Description                          |
-| ------------------------ | ------------------------------------ |
-| `pgbeam.Project`         | PgBeam project                       |
-| `pgbeam.Database`        | PostgreSQL database connection       |
-| `pgbeam.Replica`         | Read replica configuration           |
-| `pgbeam.CustomDomain`    | Custom domain for connection strings |
-| `pgbeam.CacheRule`       | Query caching rule                   |
-| `pgbeam.SpendLimit`      | Budget controls                      |
-| `pgbeam.AgentCredential` | Scoped agent credential              |
-| `pgbeam.WebhookEndpoint` | Event delivery endpoint              |
+| Resource                 | Description                                                |
+| ------------------------ | ---------------------------------------------------------- |
+| `pgbeam.Project`         | PgBeam project                                             |
+| `pgbeam.Database`        | PostgreSQL database connection                             |
+| `pgbeam.Replica`         | Read replica configuration                                 |
+| `pgbeam.CustomDomain`    | Custom domain for connection strings                       |
+| `pgbeam.CacheRule`       | Query caching rule                                         |
+| `pgbeam.SpendLimit`      | Budget controls                                            |
+| `pgbeam.AgentCredential` | Scoped agent credential                                    |
+| `pgbeam.WebhookEndpoint` | Event delivery endpoint                                    |
+| `pgbeam.PolicyProfile`   | Policy profile (access mode, allowlists, masking, budgets) |
 
 ## Agent gateway
 
@@ -81,20 +90,28 @@ export const agentMcpToken = agent.mcpToken;
 > resource (`pulumi up` after `pulumi state delete` / a `replaceOnChanges`-style
 > change to a `name`/immutable input).
 
-> **Policy profiles are not yet managed as code.** `policyProfileId` (above, and
-> `defaultPolicyProfileId` on a `Project`) is the ID of a policy profile that
-> must be created out of band with `pgbeam policies create` or the dashboard —
-> there is no `PolicyProfile` resource yet. The policy itself, the most
-> security-sensitive primitive, therefore lives outside your reviewed IaC flow
-> and is invisible to `pulumi preview` drift detection.
+Manage policies as code with the `pgbeam.PolicyProfile` resource, then pass its
+`id` wherever a profile is required (`policyProfileId` above, or
+`defaultPolicyProfileId` on a `Project` to enforce a profile on
+passthrough/human connections):
+
+```typescript
+const readOnly = new pgbeam.PolicyProfile("read-only", {
+  projectId: project.id,
+  name: "read-only",
+  accessMode: "read_only",
+});
+```
+
+Keeping the profile in Pulumi puts the most security-sensitive primitive under
+`pulumi preview` drift detection.
 
 ## Authentication
 
-Set the `PGBEAM_API_TOKEN` environment variable or configure it via Pulumi
-config:
+Set the `PGBEAM_API_KEY` environment variable or configure it via Pulumi config:
 
 ```bash
-pulumi config set pgbeam:apiToken --secret your-api-token
+pulumi config set pgbeam:apiKey --secret your-api-key
 ```
 
 ## Documentation
