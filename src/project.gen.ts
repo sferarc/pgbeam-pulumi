@@ -59,6 +59,9 @@ export interface ProjectArgs {
   status?: pulumi.Input<string>;
   /** Cloud provider where the project runs. */
   cloud?: pulumi.Input<string>;
+  /** When true, this project's data plane runs in the customer's own VPC/cluster (BYOC): the control plane does not provision hosted infra, and a self-hosted proxy dials home over the config/audit gRPC stream. Requires the Scale or enterprise plan.
+   */
+  selfHosted?: pulumi.Input<boolean>;
   /** Request body for registering an upstream database. */
   database: pulumi.Input<ProjectDatabaseArgs>;
 }
@@ -134,6 +137,7 @@ function projectToState(r: ProjectData) {
     description: r.description ?? undefined,
     tags: r.tags ?? undefined,
     cloud: r.cloud ?? undefined,
+    selfHosted: r.self_hosted ?? undefined,
     proxyHost: r.proxy_host ?? undefined,
     queriesPerSecond: r.queries_per_second ?? null,
     burstSize: r.burst_size ?? null,
@@ -164,6 +168,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
           description: inputs.description as string | undefined,
           tags: inputs.tags as string[] | undefined,
           cloud: inputs.cloud as "aws" | "azure" | "gcp" | undefined,
+          self_hosted: inputs.selfHosted as boolean | undefined,
           database: {
             host: String(database.host),
             port: Number(database.port),
@@ -336,6 +341,7 @@ const projectProvider: pulumi.dynamic.ResourceProvider = {
     const replaces: string[] = [];
     if (news.orgId !== olds.orgId) replaces.push("orgId");
     if ((news.cloud ?? "aws") !== (olds.cloud ?? "aws")) replaces.push("cloud");
+    if ((news.selfHosted ?? "") !== (olds.selfHosted ?? "")) replaces.push("selfHosted");
 
     const changes =
       news.name !== olds.name ||
@@ -367,6 +373,9 @@ export class Project extends pulumi.dynamic.Resource {
   public readonly tags!: pulumi.Output<string[] | undefined>;
   /** Cloud provider where the project runs. */
   public readonly cloud!: pulumi.Output<string | undefined>;
+  /** When true, this project's data plane runs in the customer's own VPC/cluster (BYOC): the control plane does not provision hosted infra, and a self-hosted proxy dials home over the config/audit gRPC stream. Requires the Scale or enterprise plan.
+   */
+  public readonly selfHosted!: pulumi.Output<boolean | undefined>;
   /** Proxy hostname for connecting through PgBeam (e.g., myproject.proxy.pgbeam.app). */
   public readonly proxyHost!: pulumi.Output<string | undefined>;
   /** Maximum queries per second for this project. 0 means unlimited. */
