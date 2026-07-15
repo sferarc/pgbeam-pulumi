@@ -14,6 +14,12 @@ interface Limits {
   bytesPerMonth: number;
   maxQueryShapes: number;
   includedSeats: number;
+  maxAgentCredentials: number;
+  auditRetentionDays: number;
+  sandboxMaxBranches: number;
+  sandboxMaxUpstreamBytes: number;
+  sandboxIdleSeconds: number;
+  sandboxTtlSeconds: number;
 }
 
 export interface SpendLimitArgs {
@@ -45,6 +51,12 @@ function spendLimitToState(r: OrganizationPlan) {
           bytesPerMonth: r.limits.bytes_per_month,
           maxQueryShapes: r.limits.max_query_shapes,
           includedSeats: r.limits.included_seats,
+          maxAgentCredentials: r.limits.max_agent_credentials,
+          auditRetentionDays: r.limits.audit_retention_days,
+          sandboxMaxBranches: r.limits.sandbox_max_branches,
+          sandboxMaxUpstreamBytes: r.limits.sandbox_max_upstream_bytes,
+          sandboxIdleSeconds: r.limits.sandbox_idle_seconds,
+          sandboxTtlSeconds: r.limits.sandbox_ttl_seconds,
         }
       : undefined,
     createdAt: r.created_at ?? undefined,
