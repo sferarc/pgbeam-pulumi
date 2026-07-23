@@ -12,6 +12,8 @@ export interface SelfHostEnrollmentArgs {
   regionLabel?: pulumi.Input<string>;
   /** Optional human-readable note. */
   description?: pulumi.Input<string>;
+  /** When the enrollment token expires and stops authenticating new proxy connections. Null means it never expires. Enforcement is fail-closed at the gRPC auth gate the instant this time passes. */
+  expiresAt?: pulumi.Input<string>;
 }
 
 function selfHostEnrollmentToState(r: SelfHostEnrollmentData) {
@@ -23,6 +25,7 @@ function selfHostEnrollmentToState(r: SelfHostEnrollmentData) {
     createdAt: r.created_at ?? undefined,
     lastSeenAt: r.last_seen_at ?? undefined,
     revokedAt: r.revoked_at ?? undefined,
+    expiresAt: r.expires_at ?? undefined,
   };
 }
 
@@ -36,6 +39,7 @@ const selfHostEnrollmentProvider: pulumi.dynamic.ResourceProvider = {
         body: {
           region_label: inputs.regionLabel as string | undefined,
           description: inputs.description as string | undefined,
+          expires_at: inputs.expiresAt as string | undefined,
         },
       });
 
@@ -97,6 +101,7 @@ const selfHostEnrollmentProvider: pulumi.dynamic.ResourceProvider = {
     if (news.orgId !== olds.orgId) replaces.push("orgId");
     if ((news.regionLabel ?? "") !== (olds.regionLabel ?? "")) replaces.push("regionLabel");
     if ((news.description ?? "") !== (olds.description ?? "")) replaces.push("description");
+    if ((news.expiresAt ?? "") !== (olds.expiresAt ?? "")) replaces.push("expiresAt");
 
     return {
       changes: replaces.length > 0,
@@ -124,6 +129,8 @@ export class SelfHostEnrollment extends pulumi.dynamic.Resource {
   public readonly lastSeenAt!: pulumi.Output<string | undefined>;
   /** When the enrollment was revoked. Null means active. */
   public readonly revokedAt!: pulumi.Output<string | undefined>;
+  /** When the enrollment token expires and stops authenticating new proxy connections. Null means it never expires. Enforcement is fail-closed at the gRPC auth gate the instant this time passes. */
+  public readonly expiresAt!: pulumi.Output<string | undefined>;
   /** One-time enrollment token (pbh_...) for the self-hosted proxy's GRPC_AUTH_TOKEN (shown once). */
   public readonly token!: pulumi.Output<string>;
 
