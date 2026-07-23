@@ -20,6 +20,7 @@ export type {
   ProjectStatusKey as ProjectStatus,
   Replica as ReplicaData,
   RowFilter,
+  SelfHostEnrollment as SelfHostEnrollmentData,
   SSLModeKey as SSLMode,
   StatementRules,
   WebhookEndpoint as WebhookEndpointData,
@@ -48,5 +49,6 @@ export {
 } from "./project.gen.js";
 export { configure } from "./provider.js";
 export { Replica, type ReplicaArgs } from "./replica.gen.js";
+export { SelfHostEnrollment, type SelfHostEnrollmentArgs } from "./selfHostEnrollment.gen.js";
 export { SpendLimit, type SpendLimitArgs } from "./spendLimit.gen.js";
 export { WebhookEndpoint, type WebhookEndpointArgs } from "./webhookEndpoint.gen.js";

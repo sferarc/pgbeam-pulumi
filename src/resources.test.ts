@@ -560,6 +560,219 @@ describe("SpendLimit resource", () => {
 });
 
 // ---------------------------------------------------------------------------
+// AgentCredential
+// ---------------------------------------------------------------------------
+describe("AgentCredential resource", () => {
+  it("exports AgentCredential class", async () => {
+    const { AgentCredential } = await import("./agentCredential.gen");
+    expect(AgentCredential).toBeDefined();
+    expect(typeof AgentCredential).toBe("function");
+  });
+
+  it("can be instantiated with required args", async () => {
+    const { AgentCredential } = await import("./agentCredential.gen");
+    const cred = new AgentCredential("test-cred", {
+      projectId: "prj_123",
+      policyProfileId: "pol_123",
+      name: "reporting-agent",
+    });
+    expect(cred).toBeDefined();
+  });
+
+  it("accepts optional principal type, status, and expiry", async () => {
+    const { AgentCredential } = await import("./agentCredential.gen");
+    const cred = new AgentCredential("test-cred-optional", {
+      projectId: "prj_123",
+      policyProfileId: "pol_123",
+      name: "human-operator",
+      principalType: "human",
+      status: "disabled",
+      expiresAt: "2027-01-01T00:00:00Z",
+    });
+    expect(cred).toBeDefined();
+  });
+
+  it("initializes computed outputs (including one-time secrets) as undefined", async () => {
+    const { AgentCredential } = await import("./agentCredential.gen");
+    const cred = new AgentCredential("test-cred-outputs", {
+      projectId: "prj_123",
+      policyProfileId: "pol_123",
+      name: "reporting-agent",
+    }) as unknown as Record<string, unknown>;
+
+    expect(cred.pgUsername).toBeUndefined();
+    expect(cred.authMethod).toBeUndefined();
+    expect(cred.connectionString).toBeUndefined();
+    expect(cred.mcpUrl).toBeUndefined();
+    expect(cred.mcpToken).toBeUndefined();
+  });
+
+  it("marks the one-time secrets as additionalSecretOutputs", async () => {
+    const pulumi = await import("@pulumi/pulumi");
+    const { AgentCredential } = await import("./agentCredential.gen");
+    new AgentCredential("test-cred-secrets", {
+      projectId: "prj_123",
+      policyProfileId: "pol_123",
+      name: "reporting-agent",
+    });
+    const calls = (pulumi.dynamic.Resource as unknown as { mock: { calls: unknown[][] } }).mock
+      .calls;
+    const opts = calls[calls.length - 1][3] as { additionalSecretOutputs?: string[] };
+    expect(opts.additionalSecretOutputs).toContain("connectionString");
+    expect(opts.additionalSecretOutputs).toContain("mcpToken");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PolicyProfile
+// ---------------------------------------------------------------------------
+describe("PolicyProfile resource", () => {
+  it("exports PolicyProfile class", async () => {
+    const { PolicyProfile } = await import("./policyProfile.gen");
+    expect(PolicyProfile).toBeDefined();
+    expect(typeof PolicyProfile).toBe("function");
+  });
+
+  it("can be instantiated with required args", async () => {
+    const { PolicyProfile } = await import("./policyProfile.gen");
+    const profile = new PolicyProfile("test-profile", {
+      projectId: "prj_123",
+      name: "read-only-agents",
+    });
+    expect(profile).toBeDefined();
+  });
+
+  it("accepts structured enforcement config", async () => {
+    const { PolicyProfile } = await import("./policyProfile.gen");
+    const profile = new PolicyProfile("test-profile-full", {
+      projectId: "prj_123",
+      name: "guarded",
+      accessMode: "read_only",
+      tableAllowlist: ["public.orders", "public.customers"],
+      tableDenylist: ["public.secrets"],
+      maskingRules: [{ table: "public.customers", column: "email", kind: "redact" }],
+      rowFilters: [{ table: "public.orders", predicate: "region = 'eu'" }],
+      statementRules: { allow: ["select"], deny: ["truncate"] },
+      budgetQueriesPerHour: 1000,
+      maxRows: 500,
+      writeMode: "rollback",
+      approvalMode: "writes",
+      migrationSafety: "block",
+      maxAffectedRows: 100,
+    });
+    expect(profile).toBeDefined();
+  });
+
+  it("initializes computed outputs as undefined", async () => {
+    const { PolicyProfile } = await import("./policyProfile.gen");
+    const profile = new PolicyProfile("test-profile-outputs", {
+      projectId: "prj_123",
+      name: "read-only-agents",
+    }) as unknown as Record<string, unknown>;
+
+    expect(profile.createdAt).toBeUndefined();
+    expect(profile.updatedAt).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// WebhookEndpoint
+// ---------------------------------------------------------------------------
+describe("WebhookEndpoint resource", () => {
+  it("exports WebhookEndpoint class", async () => {
+    const { WebhookEndpoint } = await import("./webhookEndpoint.gen");
+    expect(WebhookEndpoint).toBeDefined();
+    expect(typeof WebhookEndpoint).toBe("function");
+  });
+
+  it("can be instantiated with required args", async () => {
+    const { WebhookEndpoint } = await import("./webhookEndpoint.gen");
+    const hook = new WebhookEndpoint("test-hook", {
+      projectId: "prj_123",
+      url: "https://example.com/hooks/audit",
+    });
+    expect(hook).toBeDefined();
+  });
+
+  it("accepts the write-only signing secret and delivery options", async () => {
+    const { WebhookEndpoint } = await import("./webhookEndpoint.gen");
+    const hook = new WebhookEndpoint("test-hook-full", {
+      projectId: "prj_123",
+      url: "https://example.com/hooks/audit",
+      format: "json",
+      eventTypes: ["audit.query", "anomaly.detected"],
+      enabled: true,
+      description: "SIEM export",
+      secret: "whsec_test",
+    });
+    expect(hook).toBeDefined();
+  });
+
+  it("initializes computed outputs as undefined", async () => {
+    const { WebhookEndpoint } = await import("./webhookEndpoint.gen");
+    const hook = new WebhookEndpoint("test-hook-outputs", {
+      projectId: "prj_123",
+      url: "https://example.com/hooks/audit",
+    }) as unknown as Record<string, unknown>;
+
+    expect(hook.createdAt).toBeUndefined();
+    expect(hook.updatedAt).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SelfHostEnrollment
+// ---------------------------------------------------------------------------
+describe("SelfHostEnrollment resource", () => {
+  it("exports SelfHostEnrollment class", async () => {
+    const { SelfHostEnrollment } = await import("./selfHostEnrollment.gen");
+    expect(SelfHostEnrollment).toBeDefined();
+    expect(typeof SelfHostEnrollment).toBe("function");
+  });
+
+  it("can be instantiated with required args", async () => {
+    const { SelfHostEnrollment } = await import("./selfHostEnrollment.gen");
+    const enrollment = new SelfHostEnrollment("test-enrollment", {
+      orgId: "org_123",
+    });
+    expect(enrollment).toBeDefined();
+  });
+
+  it("accepts optional region label and description", async () => {
+    const { SelfHostEnrollment } = await import("./selfHostEnrollment.gen");
+    const enrollment = new SelfHostEnrollment("test-enrollment-labeled", {
+      orgId: "org_123",
+      regionLabel: "customer-vpc-us-east",
+      description: "prod cluster",
+    });
+    expect(enrollment).toBeDefined();
+  });
+
+  it("initializes computed outputs (including the one-time token) as undefined", async () => {
+    const { SelfHostEnrollment } = await import("./selfHostEnrollment.gen");
+    const enrollment = new SelfHostEnrollment("test-enrollment-outputs", {
+      orgId: "org_123",
+    }) as unknown as Record<string, unknown>;
+
+    expect(enrollment.createdBy).toBeUndefined();
+    expect(enrollment.createdAt).toBeUndefined();
+    expect(enrollment.token).toBeUndefined();
+  });
+
+  it("marks the one-time token as an additionalSecretOutput", async () => {
+    const pulumi = await import("@pulumi/pulumi");
+    const { SelfHostEnrollment } = await import("./selfHostEnrollment.gen");
+    new SelfHostEnrollment("test-enrollment-secret", {
+      orgId: "org_123",
+    });
+    const calls = (pulumi.dynamic.Resource as unknown as { mock: { calls: unknown[][] } }).mock
+      .calls;
+    const opts = calls[calls.length - 1][3] as { additionalSecretOutputs?: string[] };
+    expect(opts.additionalSecretOutputs).toContain("token");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Index re-exports
 // ---------------------------------------------------------------------------
 describe("Pulumi package index", () => {
@@ -571,6 +784,10 @@ describe("Pulumi package index", () => {
     expect(mod.CustomDomain).toBeDefined();
     expect(mod.Replica).toBeDefined();
     expect(mod.SpendLimit).toBeDefined();
+    expect(mod.AgentCredential).toBeDefined();
+    expect(mod.PolicyProfile).toBeDefined();
+    expect(mod.WebhookEndpoint).toBeDefined();
+    expect(mod.SelfHostEnrollment).toBeDefined();
     expect(mod.configure).toBeDefined();
     expect(mod.verifyCustomDomain).toBeDefined();
   });
@@ -593,5 +810,9 @@ describe("Pulumi package index", () => {
     expect(typeof mod.CustomDomain).toBe("function");
     expect(typeof mod.Replica).toBe("function");
     expect(typeof mod.SpendLimit).toBe("function");
+    expect(typeof mod.AgentCredential).toBe("function");
+    expect(typeof mod.PolicyProfile).toBe("function");
+    expect(typeof mod.WebhookEndpoint).toBe("function");
+    expect(typeof mod.SelfHostEnrollment).toBe("function");
   });
 });
