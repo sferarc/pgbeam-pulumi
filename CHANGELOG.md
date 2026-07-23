@@ -1,5 +1,13 @@
 # @pgbeam/pulumi
 
+## 0.1.20
+
+### Patch Changes
+
+- 5d49e15: feat(providers): SelfHostEnrollment resource in all three IaC providers, gateway-resource secret-lifecycle tests, crossplane generator fix for immutable resources with wrapped create responses
+- Updated dependencies [19a6caf]
+  - pgbeam@0.3.10
+
 ## 0.1.19
 
 ### Patch Changes
