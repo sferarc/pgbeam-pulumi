@@ -2,7 +2,13 @@
 
 import * as pulumi from "@pulumi/pulumi";
 import type { CustomDomain as CustomDomainData } from "pgbeam";
-import { apiErrorStatus, createClient, handleApiError } from "./provider.js";
+import {
+  apiErrorStatus,
+  createClient,
+  handleApiError,
+  isApiUnreachable,
+  warnRefreshSkipped,
+} from "./provider.js";
 import { stripUndefined } from "./utils.js";
 
 interface DnsInstructions {
@@ -104,6 +110,11 @@ const customDomainProvider: pulumi.dynamic.ResourceProvider = {
         }),
       };
     } catch (err) {
+      if (isApiUnreachable(err)) {
+        warnRefreshSkipped("CustomDomain", id, err);
+        return { id, props };
+      }
+
       handleApiError("read", "CustomDomain", err);
     }
   },

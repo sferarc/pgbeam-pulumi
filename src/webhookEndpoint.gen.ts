@@ -2,7 +2,13 @@
 
 import * as pulumi from "@pulumi/pulumi";
 import type { WebhookEndpoint as WebhookEndpointData } from "pgbeam";
-import { apiErrorStatus, createClient, handleApiError } from "./provider.js";
+import {
+  apiErrorStatus,
+  createClient,
+  handleApiError,
+  isApiUnreachable,
+  warnRefreshSkipped,
+} from "./provider.js";
 import { stripUndefined } from "./utils.js";
 
 export interface WebhookEndpointArgs {
@@ -100,6 +106,11 @@ const webhookEndpointProvider: pulumi.dynamic.ResourceProvider = {
         }),
       };
     } catch (err) {
+      if (isApiUnreachable(err)) {
+        warnRefreshSkipped("WebhookEndpoint", id, err);
+        return { id, props };
+      }
+
       if (apiErrorStatus(err) === 404 && props.url) {
         const list = (await api.webhooks.listWebhookEndpoints({
           pathParams: { project_id: String(props.projectId) },

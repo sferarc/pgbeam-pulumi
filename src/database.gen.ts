@@ -2,7 +2,13 @@
 
 import * as pulumi from "@pulumi/pulumi";
 import type { Database as DatabaseData } from "pgbeam";
-import { apiErrorStatus, createClient, handleApiError } from "./provider.js";
+import {
+  apiErrorStatus,
+  createClient,
+  handleApiError,
+  isApiUnreachable,
+  warnRefreshSkipped,
+} from "./provider.js";
 import { stripUndefined } from "./utils.js";
 
 interface CacheConfig {
@@ -178,6 +184,11 @@ const databaseProvider: pulumi.dynamic.ResourceProvider = {
         }),
       };
     } catch (err) {
+      if (isApiUnreachable(err)) {
+        warnRefreshSkipped("Database", id, err);
+        return { id, props };
+      }
+
       handleApiError("read", "Database", err);
     }
   },

@@ -9,36 +9,37 @@ vi.mock("@pulumi/pulumi", () => ({
   })),
 }));
 
-// Mock the PgBeam SDK
-vi.mock("pgbeam", () => {
-  class MockApiError extends Error {
-    status: number;
-    statusText: string;
-    body: unknown;
-    constructor(status: number, statusText: string, body?: unknown) {
-      super(`${status} ${statusText}`);
-      this.name = "ApiError";
-      this.status = status;
-      this.statusText = statusText;
-      this.body = body;
-    }
-  }
+// Record the options the provider hands to the SDK client, so the retry and
+// timeout policy can be asserted without a network call.
+const clientOptions = vi.hoisted(() => ({
+  last: undefined as Record<string, unknown> | undefined,
+}));
+
+// Mock only the client transport. ApiError and describeError stay real so the
+// tests exercise the same error shapes the SDK actually throws.
+vi.mock("pgbeam", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("pgbeam")>();
 
   class MockPgBeamClient {
     api: Record<string, unknown>;
-    constructor(_opts: Record<string, unknown>) {
+    constructor(opts: Record<string, unknown>) {
+      clientOptions.last = opts;
       this.api = { projects: {}, databases: {}, platform: {} };
     }
   }
 
-  return {
-    PgBeamClient: MockPgBeamClient,
-    ApiError: MockApiError,
-  };
+  return { ...actual, PgBeamClient: MockPgBeamClient };
 });
 
-import { ApiError } from "pgbeam";
-import { apiErrorStatus, configure, createClient, handleApiError } from "./provider";
+import { ApiError, NetworkError } from "pgbeam";
+import {
+  apiErrorStatus,
+  configure,
+  createClient,
+  handleApiError,
+  isApiUnreachable,
+  warnRefreshSkipped,
+} from "./provider";
 
 // ---------------------------------------------------------------------------
 // configure
@@ -73,6 +74,27 @@ describe("createClient", () => {
     const client = createClient();
     expect(client).toBeDefined();
   });
+
+  it("bounds every request with a timeout", () => {
+    configure({ apiKey: "test-key" });
+    createClient();
+
+    expect(clientOptions.last?.timeoutMs).toBe(15_000);
+  });
+
+  it("bounds the retry ladder with a total budget", () => {
+    configure({ apiKey: "test-key" });
+    createClient();
+
+    const retry = clientOptions.last?.retry as Record<string, number>;
+    expect(retry.totalBudgetMs).toBe(60_000);
+    // Worst case is the budget plus one final request timeout, well under the
+    // five minutes an unbounded ladder used to spend before failing.
+    const maxBackoff = Array.from({ length: retry.maxRetries }, (_, i) =>
+      Math.min(retry.initialDelayMs * 2 ** i, retry.maxDelayMs),
+    ).reduce((a, b) => a + b, 0);
+    expect(maxBackoff).toBeLessThanOrEqual(retry.totalBudgetMs);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -98,13 +120,120 @@ describe("handleApiError", () => {
     );
   });
 
-  it("re-throws non-ApiError errors as-is", () => {
+  it("names the operation and resource for a non-ApiError", () => {
     const err = new Error("network failure");
-    expect(() => handleApiError("delete", "Replica", err)).toThrow("network failure");
+    expect(() => handleApiError("delete", "Replica", err)).toThrow(
+      "PgBeam delete Replica failed: Error: network failure",
+    );
   });
 
-  it("re-throws non-Error values", () => {
+  it("unwraps the cause chain hidden behind 'fetch failed'", () => {
+    const cause = Object.assign(new Error("connect ECONNREFUSED 10.0.0.1:443"), {
+      code: "ECONNREFUSED",
+    });
+    const err = new TypeError("fetch failed", { cause });
+
+    expect(() => handleApiError("read", "Project", err)).toThrow(
+      /PgBeam read Project failed: TypeError: fetch failed \(caused by Error: connect ECONNREFUSED 10\.0\.0\.1:443 \[ECONNREFUSED\]\)/,
+    );
+  });
+
+  it("keeps the original error as the cause", () => {
+    const err = new Error("boom");
+    try {
+      handleApiError("update", "Project", err);
+      expect.unreachable("handleApiError must throw");
+    } catch (thrown) {
+      expect((thrown as Error).cause).toBe(err);
+    }
+  });
+
+  it("wraps non-Error values", () => {
     expect(() => handleApiError("create", "Project", "string error")).toThrow("string error");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isApiUnreachable
+// ---------------------------------------------------------------------------
+describe("isApiUnreachable", () => {
+  it("is true for a NetworkError from the SDK", () => {
+    const err = new NetworkError({
+      method: "GET",
+      url: "https://api.staging.pgbeam.dev/v1/projects/p1",
+      attempts: 5,
+      elapsedMs: 1234,
+      timedOut: false,
+      timeoutMs: 15_000,
+      cause: new TypeError("fetch failed"),
+    });
+    expect(isApiUnreachable(err)).toBe(true);
+  });
+
+  it("is true for a bare undici 'fetch failed'", () => {
+    expect(isApiUnreachable(new TypeError("fetch failed"))).toBe(true);
+  });
+
+  it("is true for a refused connection nested in the cause chain", () => {
+    const cause = Object.assign(new Error("connect ECONNREFUSED 10.0.0.1:443"), {
+      code: "ECONNREFUSED",
+    });
+    expect(isApiUnreachable(new Error("wrapped", { cause }))).toBe(true);
+  });
+
+  it("is true for an aborted or timed-out request", () => {
+    const timeout = Object.assign(new Error("aborted"), { name: "TimeoutError" });
+    expect(isApiUnreachable(timeout)).toBe(true);
+  });
+
+  it("is true for a gateway status, which is not an answer from the API", () => {
+    expect(isApiUnreachable(new ApiError(502, "Bad Gateway", null))).toBe(true);
+    expect(isApiUnreachable(new ApiError(503, "Service Unavailable", null))).toBe(true);
+    expect(isApiUnreachable(new ApiError(504, "Gateway Timeout", null))).toBe(true);
+  });
+
+  it("is false when the API gave a considered answer", () => {
+    expect(isApiUnreachable(new ApiError(404, "Not Found", null))).toBe(false);
+    expect(isApiUnreachable(new ApiError(401, "Unauthorized", null))).toBe(false);
+    expect(isApiUnreachable(new ApiError(422, "Unprocessable", null))).toBe(false);
+    // A 500 means the API itself answered and something is genuinely broken.
+    expect(isApiUnreachable(new ApiError(500, "Internal Server Error", null))).toBe(false);
+  });
+
+  it("is false for an ordinary error", () => {
+    expect(isApiUnreachable(new Error("Project prj_1 not found"))).toBe(false);
+    expect(isApiUnreachable(null)).toBe(false);
+    expect(isApiUnreachable("boom")).toBe(false);
+  });
+
+  it("does not follow a cause chain forever", () => {
+    const err: Error & { cause?: unknown } = new Error("loop");
+    err.cause = err;
+    expect(isApiUnreachable(err)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// warnRefreshSkipped
+// ---------------------------------------------------------------------------
+describe("warnRefreshSkipped", () => {
+  it("says which resource was skipped and why", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const cause = Object.assign(new Error("connect ECONNREFUSED 10.0.0.1:443"), {
+        code: "ECONNREFUSED",
+      });
+      warnRefreshSkipped("Project", "prj_1", new TypeError("fetch failed", { cause }));
+
+      expect(warn).toHaveBeenCalledOnce();
+      const message = warn.mock.calls[0][0] as string;
+      expect(message).toContain("Project");
+      expect(message).toContain("prj_1");
+      expect(message).toContain("ECONNREFUSED");
+      expect(message).toContain("Keeping the last known state");
+    } finally {
+      warn.mockRestore();
+    }
   });
 });
 

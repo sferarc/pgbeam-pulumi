@@ -2,7 +2,13 @@
 
 import * as pulumi from "@pulumi/pulumi";
 import type { OrganizationPlan } from "pgbeam";
-import { apiErrorStatus, createClient, handleApiError } from "./provider.js";
+import {
+  apiErrorStatus,
+  createClient,
+  handleApiError,
+  isApiUnreachable,
+  warnRefreshSkipped,
+} from "./provider.js";
 import { stripUndefined } from "./utils.js";
 
 interface Limits {
@@ -102,6 +108,11 @@ const spendLimitProvider: pulumi.dynamic.ResourceProvider = {
         }),
       };
     } catch (err) {
+      if (isApiUnreachable(err)) {
+        warnRefreshSkipped("SpendLimit", id, err);
+        return { id, props };
+      }
+
       handleApiError("read", "SpendLimit", err);
     }
   },

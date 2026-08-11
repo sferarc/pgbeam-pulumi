@@ -2,7 +2,13 @@
 
 import * as pulumi from "@pulumi/pulumi";
 import type { SelfHostEnrollment as SelfHostEnrollmentData } from "pgbeam";
-import { apiErrorStatus, createClient, handleApiError } from "./provider.js";
+import {
+  apiErrorStatus,
+  createClient,
+  handleApiError,
+  isApiUnreachable,
+  warnRefreshSkipped,
+} from "./provider.js";
 import { stripUndefined } from "./utils.js";
 
 export interface SelfHostEnrollmentArgs {
@@ -79,6 +85,11 @@ const selfHostEnrollmentProvider: pulumi.dynamic.ResourceProvider = {
         }),
       };
     } catch (err) {
+      if (isApiUnreachable(err)) {
+        warnRefreshSkipped("SelfHostEnrollment", id, err);
+        return { id, props };
+      }
+
       handleApiError("read", "SelfHostEnrollment", err);
     }
   },
