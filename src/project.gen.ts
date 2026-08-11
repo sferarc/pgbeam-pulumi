@@ -160,7 +160,7 @@ function projectToState(r: ProjectData) {
   };
 }
 
-const projectProvider: pulumi.dynamic.ResourceProvider = {
+export const projectProvider: pulumi.dynamic.ResourceProvider = {
   async create(inputs: Record<string, unknown>) {
     const api = createClient();
 

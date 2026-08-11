@@ -41,7 +41,7 @@ function webhookEndpointToState(r: WebhookEndpointData) {
   };
 }
 
-const webhookEndpointProvider: pulumi.dynamic.ResourceProvider = {
+export const webhookEndpointProvider: pulumi.dynamic.ResourceProvider = {
   async create(inputs: Record<string, unknown>) {
     const api = createClient();
 

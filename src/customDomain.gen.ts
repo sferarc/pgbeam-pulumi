@@ -50,7 +50,7 @@ function customDomainToState(r: CustomDomainData) {
   };
 }
 
-const customDomainProvider: pulumi.dynamic.ResourceProvider = {
+export const customDomainProvider: pulumi.dynamic.ResourceProvider = {
   async create(inputs: Record<string, unknown>) {
     const api = createClient();
 

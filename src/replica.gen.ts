@@ -33,7 +33,7 @@ function replicaToState(r: ReplicaData) {
   };
 }
 
-const replicaProvider: pulumi.dynamic.ResourceProvider = {
+export const replicaProvider: pulumi.dynamic.ResourceProvider = {
   async create(inputs: Record<string, unknown>) {
     const api = createClient();
 

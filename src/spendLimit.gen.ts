@@ -70,7 +70,7 @@ function spendLimitToState(r: OrganizationPlan) {
   };
 }
 
-const spendLimitProvider: pulumi.dynamic.ResourceProvider = {
+export const spendLimitProvider: pulumi.dynamic.ResourceProvider = {
   async create(inputs: Record<string, unknown>) {
     const api = createClient();
 

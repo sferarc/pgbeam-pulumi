@@ -1,3 +1,20 @@
+/**
+ * Shared runtime for the generated PgBeam dynamic resource providers.
+ *
+ * SERIALIZATION CONSTRAINT. Pulumi captures a dynamic provider's closure by
+ * value into stack state. This package is linked into `infra` as a workspace
+ * symlink, so its real path sits outside `node_modules` and Pulumi's closure
+ * serializer classifies it as a local module: it is serialized by value rather
+ * than emitted as a `require`. The serializer only knows primitives, arrays,
+ * plain objects, functions, RegExp and Promise. A `Set` comes back as `{}` with
+ * `Set.prototype.has` pinned on it, so the first `.has()` throws "Method
+ * Set.prototype.has called on incompatible receiver". So: no Set, Map, WeakMap,
+ * WeakSet or Date at module scope here, and no class instance holding internal
+ * slots. Use arrays and plain objects. Values built inside a function body are
+ * fine; only captured ones are serialized. `src/serialization.test.ts` enforces
+ * this. See `brain/infrastructure/pulumi.md`.
+ */
+
 import * as pulumi from "@pulumi/pulumi";
 import { type ApiClient, ApiError, describeError, PgBeamClient } from "pgbeam";
 
@@ -38,10 +55,10 @@ const RETRY_POLICY = {
  * platform's own load balancer replied, not the API. Like a refused connection,
  * these say nothing about the state of the resource being read.
  */
-const NO_ANSWER_STATUSES: ReadonlySet<number> = new Set([408, 429, 502, 503, 504]);
+const NO_ANSWER_STATUSES: readonly number[] = [408, 429, 502, 503, 504];
 
 /** Node/undici error codes for a connection that never completed. */
-const TRANSPORT_ERROR_CODES: ReadonlySet<string> = new Set([
+const TRANSPORT_ERROR_CODES: readonly string[] = [
   "ECONNRESET",
   "ECONNREFUSED",
   "EPIPE",
@@ -55,14 +72,10 @@ const TRANSPORT_ERROR_CODES: ReadonlySet<string> = new Set([
   "UND_ERR_HEADERS_TIMEOUT",
   "UND_ERR_BODY_TIMEOUT",
   "UND_ERR_SOCKET",
-]);
+];
 
 /** Error names raised by an aborted or timed-out request. */
-const TRANSPORT_ERROR_NAMES: ReadonlySet<string> = new Set([
-  "NetworkError",
-  "AbortError",
-  "TimeoutError",
-]);
+const TRANSPORT_ERROR_NAMES: readonly string[] = ["NetworkError", "AbortError", "TimeoutError"];
 
 /**
  * Configure the PgBeam provider globally. Call this once in your Pulumi program
@@ -153,8 +166,12 @@ function errorField(err: unknown, field: string): string | undefined {
 function isTransportFailure(err: unknown, depth: number): boolean {
   if (depth > 5 || err === null || typeof err !== "object") return false;
   const candidate = err as { name?: unknown; code?: unknown; message?: unknown; cause?: unknown };
-  if (typeof candidate.name === "string" && TRANSPORT_ERROR_NAMES.has(candidate.name)) return true;
-  if (typeof candidate.code === "string" && TRANSPORT_ERROR_CODES.has(candidate.code)) return true;
+  if (typeof candidate.name === "string" && TRANSPORT_ERROR_NAMES.includes(candidate.name)) {
+    return true;
+  }
+  if (typeof candidate.code === "string" && TRANSPORT_ERROR_CODES.includes(candidate.code)) {
+    return true;
+  }
   // undici reports every connection-level failure as `TypeError: fetch failed`
   // and hangs the real reason off `cause`.
   if (candidate instanceof TypeError && candidate.message === "fetch failed") return true;
@@ -171,7 +188,7 @@ function isTransportFailure(err: unknown, depth: number): boolean {
  */
 export function isApiUnreachable(err: unknown): boolean {
   const status = apiErrorStatus(err);
-  if (status !== undefined) return NO_ANSWER_STATUSES.has(status);
+  if (status !== undefined) return NO_ANSWER_STATUSES.includes(status);
   return isTransportFailure(err, 0);
 }
 

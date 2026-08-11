@@ -42,7 +42,7 @@ function agentCredentialToState(r: AgentCredentialData) {
   };
 }
 
-const agentCredentialProvider: pulumi.dynamic.ResourceProvider = {
+export const agentCredentialProvider: pulumi.dynamic.ResourceProvider = {
   async create(inputs: Record<string, unknown>) {
     const api = createClient();
 

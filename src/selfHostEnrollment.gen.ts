@@ -35,7 +35,7 @@ function selfHostEnrollmentToState(r: SelfHostEnrollmentData) {
   };
 }
 
-const selfHostEnrollmentProvider: pulumi.dynamic.ResourceProvider = {
+export const selfHostEnrollmentProvider: pulumi.dynamic.ResourceProvider = {
   async create(inputs: Record<string, unknown>) {
     const api = createClient();
 

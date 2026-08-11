@@ -125,7 +125,7 @@ function databaseToState(r: DatabaseData) {
   };
 }
 
-const databaseProvider: pulumi.dynamic.ResourceProvider = {
+export const databaseProvider: pulumi.dynamic.ResourceProvider = {
   async create(inputs: Record<string, unknown>) {
     const api = createClient();
 

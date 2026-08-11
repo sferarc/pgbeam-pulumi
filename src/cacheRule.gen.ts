@@ -45,7 +45,7 @@ function cacheRuleToState(r: CacheRuleEntry) {
   };
 }
 
-const cacheRuleProvider: pulumi.dynamic.ResourceProvider = {
+export const cacheRuleProvider: pulumi.dynamic.ResourceProvider = {
   async create(inputs: Record<string, unknown>) {
     const api = createClient();
 

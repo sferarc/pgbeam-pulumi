@@ -132,7 +132,7 @@ function policyProfileToState(r: PolicyProfileData) {
   };
 }
 
-const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
+export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
   async create(inputs: Record<string, unknown>) {
     const api = createClient();
 
