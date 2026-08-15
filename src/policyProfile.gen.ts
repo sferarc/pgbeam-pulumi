@@ -69,9 +69,9 @@ export interface PolicyProfileArgs {
   accessMode?: pulumi.Input<string>;
   /** Per-statement-kind allow/deny lists. Empty allow means all kinds permitted by the access mode. */
   statementRules?: pulumi.Input<StatementRulesArgs>;
-  /** If non-empty, only these relations are reachable. Schema-qualified or bare names. */
+  /** If non-empty, only these relations are reachable. Entries are schema-qualified (billing.orders) or bare (orders); a bare entry grants the public schema only, so the same table name in another schema must be listed in full. */
   tableAllowlist?: pulumi.Input<pulumi.Input<string>[]>;
-  /** Relations explicitly blocked (takes precedence over the allowlist). */
+  /** Relations explicitly blocked (takes precedence over the allowlist). A bare entry blocks that relation in every schema. */
   tableDenylist?: pulumi.Input<pulumi.Input<string>[]>;
   /** Column masking rules applied to query results. */
   maskingRules?: pulumi.Input<pulumi.Input<MaskingRuleArgs>[]>;
@@ -380,9 +380,9 @@ export class PolicyProfile extends pulumi.dynamic.Resource {
   public readonly accessMode!: pulumi.Output<string | undefined>;
   /** Per-statement-kind allow/deny lists. Empty allow means all kinds permitted by the access mode. */
   public readonly statementRules!: pulumi.Output<StatementRules | undefined>;
-  /** If non-empty, only these relations are reachable. Schema-qualified or bare names. */
+  /** If non-empty, only these relations are reachable. Entries are schema-qualified (billing.orders) or bare (orders); a bare entry grants the public schema only, so the same table name in another schema must be listed in full. */
   public readonly tableAllowlist!: pulumi.Output<string[] | undefined>;
-  /** Relations explicitly blocked (takes precedence over the allowlist). */
+  /** Relations explicitly blocked (takes precedence over the allowlist). A bare entry blocks that relation in every schema. */
   public readonly tableDenylist!: pulumi.Output<string[] | undefined>;
   /** Column masking rules applied to query results. */
   public readonly maskingRules!: pulumi.Output<MaskingRule[] | undefined>;
