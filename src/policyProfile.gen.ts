@@ -251,46 +251,53 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
     const api = createClient();
 
     try {
-      const body: Record<string, unknown> = {};
-      if (news.name !== olds.name) body.name = news.name;
-      if (news.accessMode !== olds.accessMode) body.access_mode = news.accessMode;
-      if (JSON.stringify(news.statementRules) !== JSON.stringify(olds.statementRules))
-        body.statement_rules = toApiStatementRules(
-          news.statementRules as Record<string, unknown> | undefined,
-        );
-      if (JSON.stringify(news.tableAllowlist) !== JSON.stringify(olds.tableAllowlist))
-        body.table_allowlist = news.tableAllowlist;
-      if (JSON.stringify(news.tableDenylist) !== JSON.stringify(olds.tableDenylist))
-        body.table_denylist = news.tableDenylist;
-      if (JSON.stringify(news.maskingRules) !== JSON.stringify(olds.maskingRules))
-        body.masking_rules = (news.maskingRules as Record<string, unknown>[] | undefined)?.map(
-          toApiMaskingRule,
-        );
-      if (news.budgetQueriesPerHour !== olds.budgetQueriesPerHour)
-        body.budget_queries_per_hour = news.budgetQueriesPerHour;
-      if (news.budgetQueriesPerDay !== olds.budgetQueriesPerDay)
-        body.budget_queries_per_day = news.budgetQueriesPerDay;
-      if (news.maxRows !== olds.maxRows) body.max_rows = news.maxRows;
-      if (news.statementTimeoutMs !== olds.statementTimeoutMs)
-        body.statement_timeout_ms = news.statementTimeoutMs;
-      if (JSON.stringify(news.rowFilters) !== JSON.stringify(olds.rowFilters))
-        body.row_filters = (news.rowFilters as Record<string, unknown>[] | undefined)?.map(
-          toApiRowFilter,
-        );
-      if (news.writeMode !== olds.writeMode) body.write_mode = news.writeMode;
-      if (news.approvalMode !== olds.approvalMode) body.approval_mode = news.approvalMode;
-      if (news.approvalAutoMaxRows !== olds.approvalAutoMaxRows)
-        body.approval_auto_max_rows = news.approvalAutoMaxRows;
-      if (news.approvalTimeoutSeconds !== olds.approvalTimeoutSeconds)
-        body.approval_timeout_seconds = news.approvalTimeoutSeconds;
-      if (news.migrationSafety !== olds.migrationSafety)
-        body.migration_safety = news.migrationSafety;
-      if (news.egressBytesPerDay !== olds.egressBytesPerDay)
-        body.egress_bytes_per_day = news.egressBytesPerDay;
-      if (news.maxAffectedRows !== olds.maxAffectedRows)
-        body.max_affected_rows = news.maxAffectedRows;
+      const changed =
+        news.name !== olds.name ||
+        news.accessMode !== olds.accessMode ||
+        JSON.stringify(news.statementRules) !== JSON.stringify(olds.statementRules) ||
+        JSON.stringify(news.tableAllowlist) !== JSON.stringify(olds.tableAllowlist) ||
+        JSON.stringify(news.tableDenylist) !== JSON.stringify(olds.tableDenylist) ||
+        JSON.stringify(news.maskingRules) !== JSON.stringify(olds.maskingRules) ||
+        news.budgetQueriesPerHour !== olds.budgetQueriesPerHour ||
+        news.budgetQueriesPerDay !== olds.budgetQueriesPerDay ||
+        news.maxRows !== olds.maxRows ||
+        news.statementTimeoutMs !== olds.statementTimeoutMs ||
+        JSON.stringify(news.rowFilters) !== JSON.stringify(olds.rowFilters) ||
+        news.writeMode !== olds.writeMode ||
+        news.approvalMode !== olds.approvalMode ||
+        news.approvalAutoMaxRows !== olds.approvalAutoMaxRows ||
+        news.approvalTimeoutSeconds !== olds.approvalTimeoutSeconds ||
+        news.migrationSafety !== olds.migrationSafety ||
+        news.egressBytesPerDay !== olds.egressBytesPerDay ||
+        news.maxAffectedRows !== olds.maxAffectedRows;
 
-      if (Object.keys(body).length > 0) {
+      const body: Record<string, unknown> = {};
+      body.name = news.name;
+      body.access_mode = news.accessMode;
+      body.statement_rules = toApiStatementRules(
+        news.statementRules as Record<string, unknown> | undefined,
+      );
+      body.table_allowlist = news.tableAllowlist;
+      body.table_denylist = news.tableDenylist;
+      body.masking_rules = (news.maskingRules as Record<string, unknown>[] | undefined)?.map(
+        toApiMaskingRule,
+      );
+      body.budget_queries_per_hour = news.budgetQueriesPerHour;
+      body.budget_queries_per_day = news.budgetQueriesPerDay;
+      body.max_rows = news.maxRows;
+      body.statement_timeout_ms = news.statementTimeoutMs;
+      body.row_filters = (news.rowFilters as Record<string, unknown>[] | undefined)?.map(
+        toApiRowFilter,
+      );
+      body.write_mode = news.writeMode;
+      body.approval_mode = news.approvalMode;
+      body.approval_auto_max_rows = news.approvalAutoMaxRows;
+      body.approval_timeout_seconds = news.approvalTimeoutSeconds;
+      body.migration_safety = news.migrationSafety;
+      body.egress_bytes_per_day = news.egressBytesPerDay;
+      body.max_affected_rows = news.maxAffectedRows;
+
+      if (changed) {
         await api.policies.updatePolicyProfile({
           pathParams: { project_id: String(news.projectId), policy_id: id },
           body: body as Parameters<typeof api.policies.updatePolicyProfile>[0]["body"],

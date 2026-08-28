@@ -143,16 +143,23 @@ export const webhookEndpointProvider: pulumi.dynamic.ResourceProvider = {
     const api = createClient();
 
     try {
-      const body: Record<string, unknown> = {};
-      if (news.url !== olds.url) body.url = news.url;
-      if (news.format !== olds.format) body.format = news.format;
-      if (JSON.stringify(news.eventTypes) !== JSON.stringify(olds.eventTypes))
-        body.event_types = news.eventTypes;
-      if (news.enabled !== olds.enabled) body.enabled = news.enabled;
-      if (news.description !== olds.description) body.description = news.description;
-      if (news.secret !== olds.secret) body.secret = news.secret;
+      const changed =
+        news.url !== olds.url ||
+        news.format !== olds.format ||
+        JSON.stringify(news.eventTypes) !== JSON.stringify(olds.eventTypes) ||
+        news.enabled !== olds.enabled ||
+        news.description !== olds.description ||
+        news.secret !== olds.secret;
 
-      if (Object.keys(body).length > 0) {
+      const body: Record<string, unknown> = {};
+      body.url = news.url;
+      body.format = news.format;
+      body.event_types = news.eventTypes;
+      body.enabled = news.enabled;
+      body.description = news.description;
+      body.secret = news.secret;
+
+      if (changed) {
         await api.webhooks.updateWebhookEndpoint({
           pathParams: { project_id: String(news.projectId), webhook_id: id },
           body: body as Parameters<typeof api.webhooks.updateWebhookEndpoint>[0]["body"],

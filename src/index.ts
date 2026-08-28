@@ -10,6 +10,7 @@ export type {
   DatabaseRoleKey as DatabaseRole,
   DataResidencyKey as DataResidency,
   DnsInstructions,
+  Honeytoken as HoneytokenData,
   MaskingRule,
   OrganizationPlan,
   PlanLimits,
@@ -34,6 +35,7 @@ export {
   type DatabaseArgs,
   type PoolConfigArgs,
 } from "./database.gen.js";
+export { Honeytoken, type HoneytokenArgs } from "./honeytoken.gen.js";
 export {
   type MaskingRuleArgs,
   PolicyProfile,

@@ -5,6 +5,7 @@ import { agentCredentialProvider } from "./agentCredential.gen.js";
 import { cacheRuleProvider } from "./cacheRule.gen.js";
 import { customDomainProvider } from "./customDomain.gen.js";
 import { databaseProvider } from "./database.gen.js";
+import { honeytokenProvider } from "./honeytoken.gen.js";
 import { policyProfileProvider } from "./policyProfile.gen.js";
 import { projectProvider } from "./project.gen.js";
 import { apiErrorStatus, isApiUnreachable } from "./provider.js";
@@ -108,6 +109,7 @@ describe("dynamic provider closure serialization", () => {
     ["policyProfile", policyProfileProvider],
     ["webhookEndpoint", webhookEndpointProvider],
     ["selfHostEnrollment", selfHostEnrollmentProvider],
+    ["honeytoken", honeytokenProvider],
   ])("serializes the %s provider without a non-serializable built-in", async (_name, provider) => {
     const text = await serialize(provider);
     const offenders = SLOTTED_BUILTINS.filter((name) => text.includes(`global.${name}.prototype.`));
