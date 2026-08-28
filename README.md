@@ -116,7 +116,7 @@ pulumi config set pgbeam:apiKey --secret your-api-key
 
 ## Documentation
 
-Full usage guide at [docs.pgbeam.com/pulumi](https://docs.pgbeam.com/pulumi).
+Full usage guide at [pgbeam.com/docs/pulumi](https://pgbeam.com/docs/pulumi).
 
 ## License
 
