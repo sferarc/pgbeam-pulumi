@@ -149,12 +149,10 @@ export const agentCredentialProvider: pulumi.dynamic.ResourceProvider = {
     const api = createClient();
 
     try {
-      const changed = news.status !== olds.status;
-
       const body: Record<string, unknown> = {};
-      body.status = news.status;
+      if (news.status !== olds.status) body.status = news.status;
 
-      if (changed) {
+      if (Object.keys(body).length > 0) {
         await api.agents.updateAgentCredentialStatus({
           pathParams: { project_id: String(news.projectId), agent_id: id },
           body: body as Parameters<typeof api.agents.updateAgentCredentialStatus>[0]["body"],
