@@ -118,6 +118,24 @@ pulumi config set pgbeam:apiKey --secret your-api-key
 
 Full usage guide at [pgbeam.com/docs/pulumi](https://pgbeam.com/docs/pulumi).
 
+## Contributing
+
+Issues and pull requests are welcome here. An issue is the right place to start
+for a bug, a wrong doc, or a missing capability; say what you ran, what
+happened, what you expected, and which version you were on.
+
+To build and test it locally:
+
+```bash
+npm install
+npm run build
+npm test
+```
+
+Do not open a public issue for a suspected security vulnerability. Email
+security@pgbeam.com, or report it privately from this repository's Security
+tab.
+
 ## License
 
 Apache 2.0 — see [LICENSE](LICENSE).
