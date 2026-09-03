@@ -1,8 +1,6 @@
 # PgBeam Pulumi Provider
 
-Pulumi provider for [PgBeam](https://pgbeam.com) — manage your globally
-distributed PostgreSQL proxy infrastructure as code using TypeScript, Python,
-Go, or C#.
+Pulumi provider for [PgBeam](https://pgbeam.com) — manage your globally distributed PostgreSQL proxy infrastructure as code using TypeScript, Python, Go, or C#.
 
 ## Install
 
@@ -12,10 +10,7 @@ npm install @pgbeam/pulumi
 
 ## Usage
 
-A project is created together with its primary database in one call, so pass the
-upstream connection as the required `database` object. A project has no `region`;
-PgBeam serves every project from every region and routes each client to the
-nearest one automatically.
+A project is created together with its primary database in one call, so pass the upstream connection as the required `database` object. A project has no `region`; PgBeam serves every project from every region and routes each client to the nearest one automatically.
 
 ```typescript
 import * as pulumi from "@pulumi/pulumi";
@@ -37,28 +32,25 @@ const project = new pgbeam.Project("my-project", {
 });
 ```
 
-To attach more databases later (for example a read replica), use the standalone
-`pgbeam.Database` resource with its own `projectId`, `name`, and credentials.
+To attach more databases later (for example a read replica), use the standalone `pgbeam.Database` resource with its own `projectId`, `name`, and credentials.
 
 ## Resources
 
-| Resource                 | Description                                                |
-| ------------------------ | ---------------------------------------------------------- |
-| `pgbeam.Project`         | PgBeam project                                             |
-| `pgbeam.Database`        | PostgreSQL database connection                             |
-| `pgbeam.Replica`         | Read replica configuration                                 |
-| `pgbeam.CustomDomain`    | Custom domain for connection strings                       |
-| `pgbeam.CacheRule`       | Query caching rule                                         |
-| `pgbeam.SpendLimit`      | Budget controls                                            |
-| `pgbeam.AgentCredential` | Scoped agent credential                                    |
-| `pgbeam.WebhookEndpoint` | Event delivery endpoint                                    |
-| `pgbeam.PolicyProfile`   | Policy profile (access mode, allowlists, masking, budgets) |
+| Resource | Description |
+| --- | --- |
+| `pgbeam.Project` | PgBeam project |
+| `pgbeam.Database` | PostgreSQL database connection |
+| `pgbeam.Replica` | Read replica configuration |
+| `pgbeam.CustomDomain` | Custom domain for connection strings |
+| `pgbeam.CacheRule` | Query caching rule |
+| `pgbeam.SpendLimit` | Budget controls |
+| `pgbeam.AgentCredential` | Scoped agent credential |
+| `pgbeam.WebhookEndpoint` | Event delivery endpoint |
+| `pgbeam.PolicyProfile` | Policy profile (access mode, allowlists, masking, budgets) |
 
 ## Agent gateway
 
-The agent gateway issues scoped,
-policy-enforced credentials for AI agents and delivers audit/anomaly events to
-webhook endpoints.
+The agent gateway issues scoped, policy-enforced credentials for AI agents and delivers audit/anomaly events to webhook endpoints.
 
 ```typescript
 const audit = new pgbeam.WebhookEndpoint("audit", {
@@ -84,16 +76,9 @@ export const agentMcpUrl = agent.mcpUrl;
 export const agentMcpToken = agent.mcpToken;
 ```
 
-> **Agent credential secrets caveat.** `connectionString` and `mcpToken` are
-> generated once at creation and never returned by subsequent reads. They are
-> stored in Pulumi state as encrypted secret outputs. To rotate, replace the
-> resource (`pulumi up` after `pulumi state delete` / a `replaceOnChanges`-style
-> change to a `name`/immutable input).
+> **Agent credential secrets caveat.** `connectionString` and `mcpToken` are generated once at creation and never returned by subsequent reads. They are stored in Pulumi state as encrypted secret outputs. To rotate, replace the resource (`pulumi up` after `pulumi state delete` / a `replaceOnChanges`-style change to a `name`/immutable input).
 
-Manage policies as code with the `pgbeam.PolicyProfile` resource, then pass its
-`id` wherever a profile is required (`policyProfileId` above, or
-`defaultPolicyProfileId` on a `Project` to enforce a profile on
-passthrough/human connections):
+Manage policies as code with the `pgbeam.PolicyProfile` resource, then pass its `id` wherever a profile is required (`policyProfileId` above, or `defaultPolicyProfileId` on a `Project` to enforce a profile on passthrough/human connections):
 
 ```typescript
 const readOnly = new pgbeam.PolicyProfile("read-only", {
@@ -103,8 +88,7 @@ const readOnly = new pgbeam.PolicyProfile("read-only", {
 });
 ```
 
-Keeping the profile in Pulumi puts the most security-sensitive primitive under
-`pulumi preview` drift detection.
+Keeping the profile in Pulumi puts the most security-sensitive primitive under `pulumi preview` drift detection.
 
 ## Authentication
 
@@ -120,9 +104,7 @@ Full usage guide at [pgbeam.com/docs/pulumi](https://pgbeam.com/docs/pulumi).
 
 ## Contributing
 
-Issues and pull requests are welcome here. An issue is the right place to start
-for a bug, a wrong doc, or a missing capability; say what you ran, what
-happened, what you expected, and which version you were on.
+Issues and pull requests are welcome here. An issue is the right place to start for a bug, a wrong doc, or a missing capability; say what you ran, what happened, what you expected, and which version you were on.
 
 To build and test it locally:
 
@@ -132,9 +114,7 @@ npm run build
 npm test
 ```
 
-Do not open a public issue for a suspected security vulnerability. Email
-security@pgbeam.com, or report it privately from this repository's Security
-tab.
+Do not open a public issue for a suspected security vulnerability. Email security@pgbeam.com, or report it privately from this repository's Security tab.
 
 ## License
 
