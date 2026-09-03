@@ -1,5 +1,13 @@
 # @pgbeam/pulumi
 
+## 0.1.33
+
+### Patch Changes
+
+- da78ed3: Declare a deliberate `@pulumi/pulumi` peer floor of `^3.229.0` rather than republishing whatever version shipped that week. A consumer on any Pulumi 3.x from 3.229.0 up can install the provider.
+- Updated dependencies [6bf2e14]
+  - pgbeam@0.4.8
+
 ## 0.1.32
 
 ### Patch Changes
