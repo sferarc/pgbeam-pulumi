@@ -19,7 +19,20 @@ export interface WebhookEndpointArgs {
   /** Payload format for delivered events. */
   format?: pulumi.Input<string>;
   /** Event types to deliver. Empty means all events. */
-  eventTypes?: pulumi.Input<pulumi.Input<string>[]>;
+  eventTypes?: pulumi.Input<
+    pulumi.Input<
+      | "query_blocked"
+      | "budget_exhausted"
+      | "kill_switch"
+      | "masked"
+      | "migration_flagged"
+      | "approval_requested"
+      | "anomaly_alert"
+      | "canary_tripped"
+      | "audit_checkpoint"
+      | "webhook.test"
+    >[]
+  >;
   /** Whether deliveries are active for this endpoint. */
   enabled?: pulumi.Input<boolean>;
   /** Human-readable label for the endpoint. */
@@ -51,7 +64,20 @@ export const webhookEndpointProvider: pulumi.dynamic.ResourceProvider = {
         body: {
           url: String(inputs.url),
           format: inputs.format as "json" | "splunk_hec" | "datadog" | "elastic" | undefined,
-          event_types: inputs.eventTypes as string[] | undefined,
+          event_types: inputs.eventTypes as
+            | (
+                | "query_blocked"
+                | "budget_exhausted"
+                | "kill_switch"
+                | "masked"
+                | "migration_flagged"
+                | "approval_requested"
+                | "anomaly_alert"
+                | "canary_tripped"
+                | "audit_checkpoint"
+                | "webhook.test"
+              )[]
+            | undefined,
           enabled: inputs.enabled as boolean | undefined,
           description: inputs.description as string | undefined,
           secret: inputs.secret as string | undefined,
@@ -237,7 +263,21 @@ export class WebhookEndpoint extends pulumi.dynamic.Resource {
   /** Payload format for delivered events. */
   public readonly format!: pulumi.Output<string | undefined>;
   /** Event types to deliver. Empty means all events. */
-  public readonly eventTypes!: pulumi.Output<string[] | undefined>;
+  public readonly eventTypes!: pulumi.Output<
+    | (
+        | "query_blocked"
+        | "budget_exhausted"
+        | "kill_switch"
+        | "masked"
+        | "migration_flagged"
+        | "approval_requested"
+        | "anomaly_alert"
+        | "canary_tripped"
+        | "audit_checkpoint"
+        | "webhook.test"
+      )[]
+    | undefined
+  >;
   /** Whether deliveries are active for this endpoint. */
   public readonly enabled!: pulumi.Output<boolean | undefined>;
   /** Human-readable label for the endpoint. */

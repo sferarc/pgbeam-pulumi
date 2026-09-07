@@ -700,7 +700,7 @@ describe("WebhookEndpoint resource", () => {
       projectId: "prj_123",
       url: "https://example.com/hooks/audit",
       format: "json",
-      eventTypes: ["audit.query", "anomaly.detected"],
+      eventTypes: ["query_blocked", "anomaly_alert"],
       enabled: true,
       description: "SIEM export",
       secret: "whsec_test",
