@@ -67,12 +67,26 @@ export const selfHostEnrollmentProvider: pulumi.dynamic.ResourceProvider = {
     const api = createClient();
 
     try {
-      const result = await api.platform.listSelfHostEnrollments({
-        pathParams: { org_id: String(props.orgId) },
-      });
+      let found: SelfHostEnrollmentData | undefined;
+      let pageToken: string | undefined;
 
-      const items = (result as { enrollments: SelfHostEnrollmentData[] }).enrollments;
-      const found = items.find((r) => r.id === id);
+      do {
+        const result = await api.platform.listSelfHostEnrollments({
+          pathParams: { org_id: String(props.orgId) },
+          queryParams: {
+            page_size: 100,
+            ...(pageToken ? { page_token: pageToken } : {}),
+          },
+        });
+
+        const response = result as {
+          enrollments: SelfHostEnrollmentData[];
+          next_page_token?: string;
+        };
+        found = response.enrollments.find((e) => e.id === id);
+        pageToken = response.next_page_token;
+      } while (!found && pageToken);
+
       if (!found) {
         throw new Error(`SelfHostEnrollment ${id} not found`);
       }

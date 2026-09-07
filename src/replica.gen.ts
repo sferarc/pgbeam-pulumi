@@ -70,12 +70,26 @@ export const replicaProvider: pulumi.dynamic.ResourceProvider = {
     const api = createClient();
 
     try {
-      const result = await api.projects.listReplicas({
-        pathParams: { database_id: String(props.databaseId) },
-      });
+      let found: ReplicaData | undefined;
+      let pageToken: string | undefined;
 
-      const items = (result as { replicas: ReplicaData[] }).replicas;
-      const found = items.find((r) => r.id === id);
+      do {
+        const result = await api.projects.listReplicas({
+          pathParams: { database_id: String(props.databaseId) },
+          queryParams: {
+            page_size: 100,
+            ...(pageToken ? { page_token: pageToken } : {}),
+          },
+        });
+
+        const response = result as {
+          replicas: ReplicaData[];
+          next_page_token?: string;
+        };
+        found = response.replicas.find((e) => e.id === id);
+        pageToken = response.next_page_token;
+      } while (!found && pageToken);
+
       if (!found) {
         throw new Error(`Replica ${id} not found`);
       }
