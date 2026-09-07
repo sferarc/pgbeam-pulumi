@@ -10,7 +10,7 @@ npm install @pgbeam/pulumi
 
 ## Usage
 
-A project is created together with its primary database in one call, so pass the upstream connection as the required `database` object. A project has no `region`; PgBeam serves every project from every region and routes each client to the nearest one automatically.
+A project is created together with its primary database in one call, so pass the upstream connection as the required `database` object. A project has no `region`: by default (`residency: "any"`) PgBeam serves it from every metro and routes each client to the nearest one. Set `residency` to `"us"` or `"eu"` to require the serving metro to be in that jurisdiction. Where a connection pool lives is a per-database choice, via `poolRegion`.
 
 ```typescript
 import * as pulumi from "@pulumi/pulumi";
