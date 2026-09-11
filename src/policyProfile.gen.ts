@@ -99,6 +99,10 @@ export interface PolicyProfileArgs {
   egressBytesPerDay?: pulumi.Input<number | null>;
   /** Hard cap on rows a single write (INSERT/UPDATE/DELETE) may affect. A write whose affected-row count would exceed this is executed inside a transaction, checked, and rolled back so nothing persists, then blocked. Enforced independently of human approval. 0 means unlimited. */
   maxAffectedRows?: pulumi.Input<number | null>;
+  /** Result-content scanning, accepted and stored but not yet enforced: no released proxy build reads this field, so today every value behaves like off. Once enforcement ships on the data-plane relay path, values on their way out to an agent will be checked for instruction-shaped content (stored prompt injection). off will scan nothing and cost nothing. annotate will forward every value unchanged and record what it found. block will additionally refuse the statement with an error naming the column, and never drop a row silently. A proxy build without result-content scanning ignores this field. */
+  contentScanMode?: pulumi.Input<string>;
+  /** Byte budget for one statement's content scan, spanning all values in the result. Stored but not yet read by any released proxy build, like content_scan_mode. Once enforced, values past it are reported unscannable rather than skipped quietly. 0 uses the scanner default (4 MiB), which covers an interactive result set and deliberately does not cover a bulk export. */
+  contentScanMaxBytes?: pulumi.Input<number | null>;
 }
 
 function policyProfileToState(r: PolicyProfileData) {
@@ -127,6 +131,8 @@ function policyProfileToState(r: PolicyProfileData) {
     migrationSafety: r.migration_safety ?? undefined,
     egressBytesPerDay: r.egress_bytes_per_day ?? null,
     maxAffectedRows: r.max_affected_rows ?? null,
+    contentScanMode: r.content_scan_mode ?? undefined,
+    contentScanMaxBytes: r.content_scan_max_bytes ?? null,
     createdAt: r.created_at ?? undefined,
     updatedAt: r.updated_at ?? undefined,
   };
@@ -164,6 +170,8 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
           migration_safety: inputs.migrationSafety as "off" | "warn" | "block" | undefined,
           egress_bytes_per_day: inputs.egressBytesPerDay as number | undefined,
           max_affected_rows: inputs.maxAffectedRows as number | undefined,
+          content_scan_mode: inputs.contentScanMode as "off" | "annotate" | "block" | undefined,
+          content_scan_max_bytes: inputs.contentScanMaxBytes as number | undefined,
         },
       });
 
@@ -269,7 +277,9 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
         news.approvalTimeoutSeconds !== olds.approvalTimeoutSeconds ||
         news.migrationSafety !== olds.migrationSafety ||
         news.egressBytesPerDay !== olds.egressBytesPerDay ||
-        news.maxAffectedRows !== olds.maxAffectedRows;
+        news.maxAffectedRows !== olds.maxAffectedRows ||
+        news.contentScanMode !== olds.contentScanMode ||
+        news.contentScanMaxBytes !== olds.contentScanMaxBytes;
 
       const body: Record<string, unknown> = {};
       body.name = news.name;
@@ -296,6 +306,8 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
       body.migration_safety = news.migrationSafety;
       body.egress_bytes_per_day = news.egressBytesPerDay;
       body.max_affected_rows = news.maxAffectedRows;
+      body.content_scan_mode = news.contentScanMode;
+      body.content_scan_max_bytes = news.contentScanMaxBytes;
 
       if (changed) {
         await api.policies.updatePolicyProfile({
@@ -368,6 +380,8 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
       news.migrationSafety !== olds.migrationSafety ||
       (news.egressBytesPerDay ?? 0) !== (olds.egressBytesPerDay ?? 0) ||
       (news.maxAffectedRows ?? 0) !== (olds.maxAffectedRows ?? 0) ||
+      news.contentScanMode !== olds.contentScanMode ||
+      (news.contentScanMaxBytes ?? 0) !== (olds.contentScanMaxBytes ?? 0) ||
       news.projectId !== olds.projectId ||
       replaces.length > 0;
 
@@ -417,6 +431,10 @@ export class PolicyProfile extends pulumi.dynamic.Resource {
   public readonly egressBytesPerDay!: pulumi.Output<number | null>;
   /** Hard cap on rows a single write (INSERT/UPDATE/DELETE) may affect. A write whose affected-row count would exceed this is executed inside a transaction, checked, and rolled back so nothing persists, then blocked. Enforced independently of human approval. 0 means unlimited. */
   public readonly maxAffectedRows!: pulumi.Output<number | null>;
+  /** Result-content scanning, accepted and stored but not yet enforced: no released proxy build reads this field, so today every value behaves like off. Once enforcement ships on the data-plane relay path, values on their way out to an agent will be checked for instruction-shaped content (stored prompt injection). off will scan nothing and cost nothing. annotate will forward every value unchanged and record what it found. block will additionally refuse the statement with an error naming the column, and never drop a row silently. A proxy build without result-content scanning ignores this field. */
+  public readonly contentScanMode!: pulumi.Output<string | undefined>;
+  /** Byte budget for one statement's content scan, spanning all values in the result. Stored but not yet read by any released proxy build, like content_scan_mode. Once enforced, values past it are reported unscannable rather than skipped quietly. 0 uses the scanner default (4 MiB), which covers an interactive result set and deliberately does not cover a bulk export. */
+  public readonly contentScanMaxBytes!: pulumi.Output<number | null>;
   /** When the policy profile was created. */
   public readonly createdAt!: pulumi.Output<string | undefined>;
   /** When the policy profile was last updated. */
