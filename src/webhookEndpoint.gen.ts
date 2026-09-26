@@ -29,6 +29,7 @@ export interface WebhookEndpointArgs {
       | "approval_requested"
       | "anomaly_alert"
       | "canary_tripped"
+      | "content_flagged"
       | "audit_checkpoint"
       | "webhook.test"
     >[]
@@ -74,6 +75,7 @@ export const webhookEndpointProvider: pulumi.dynamic.ResourceProvider = {
                 | "approval_requested"
                 | "anomaly_alert"
                 | "canary_tripped"
+                | "content_flagged"
                 | "audit_checkpoint"
                 | "webhook.test"
               )[]
@@ -273,6 +275,7 @@ export class WebhookEndpoint extends pulumi.dynamic.Resource {
         | "approval_requested"
         | "anomaly_alert"
         | "canary_tripped"
+        | "content_flagged"
         | "audit_checkpoint"
         | "webhook.test"
       )[]
