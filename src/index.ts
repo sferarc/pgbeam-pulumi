@@ -2,6 +2,8 @@
 
 export type {
   AgentCredential as AgentCredentialData,
+  AnomalyMetricKey as AnomalyMetric,
+  AnomalyRule as AnomalyRuleData,
   CacheConfig,
   CacheRuleEntry,
   CidrEntry,
@@ -27,6 +29,7 @@ export type {
   WebhookEndpoint as WebhookEndpointData,
 } from "pgbeam";
 export { AgentCredential, type AgentCredentialArgs } from "./agentCredential.gen.js";
+export { AnomalyRule, type AnomalyRuleArgs } from "./anomalyRule.gen.js";
 export { CacheRule, type CacheRuleArgs } from "./cacheRule.gen.js";
 export { CustomDomain, type CustomDomainArgs, verifyCustomDomain } from "./customDomain.gen.js";
 export {

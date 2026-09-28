@@ -1,7 +1,11 @@
+import { readdirSync } from "node:fs";
 import { createRequire } from "node:module";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import * as pulumi from "@pulumi/pulumi";
 import { describe, expect, it } from "vitest";
 import { agentCredentialProvider } from "./agentCredential.gen.js";
+import { anomalyRuleProvider } from "./anomalyRule.gen.js";
 import { cacheRuleProvider } from "./cacheRule.gen.js";
 import { customDomainProvider } from "./customDomain.gen.js";
 import { databaseProvider } from "./database.gen.js";
@@ -98,7 +102,7 @@ describe("dynamic provider closure serialization", () => {
     expect(rt.apiErrorStatus({ status: 418 })).toBe(418);
   });
 
-  it.each([
+  const PROVIDERS: Array<[string, pulumi.dynamic.ResourceProvider]> = [
     ["project", projectProvider],
     ["database", databaseProvider],
     ["replica", replicaProvider],
@@ -110,14 +114,37 @@ describe("dynamic provider closure serialization", () => {
     ["webhookEndpoint", webhookEndpointProvider],
     ["selfHostEnrollment", selfHostEnrollmentProvider],
     ["honeytoken", honeytokenProvider],
-  ])("serializes the %s provider without a non-serializable built-in", async (_name, provider) => {
-    const text = await serialize(provider);
-    const offenders = SLOTTED_BUILTINS.filter((name) => text.includes(`global.${name}.prototype.`));
-    expect(
-      offenders,
-      `the serialized closure captured ${offenders.join(", ")}. Pulumi rebuilds these as plain ` +
-        `objects, so calling a method on one throws at deploy time. Use an array or a plain ` +
-        `object at module scope, or build the value inside the function body.`,
-    ).toEqual([]);
+    ["anomalyRule", anomalyRuleProvider],
+  ];
+
+  // The table above is hand-maintained and the generator does not know about it,
+  // so a newly registered x-iac-resource is silently skipped rather than failing:
+  // the suite still passes, one resource fewer is checked, and the omission looks
+  // like a resource nobody wanted. Nothing short of a real `pulumi up` catches
+  // the failure it was meant to catch, so under-coverage here is invisible until
+  // a deploy. Derive the expected set from the generated files instead.
+  it("covers every generated provider", () => {
+    const srcDir = dirname(fileURLToPath(import.meta.url));
+    const generated = readdirSync(srcDir)
+      .filter((f) => f.endsWith(".gen.ts"))
+      .map((f) => f.slice(0, -".gen.ts".length))
+      .sort();
+    expect(PROVIDERS.map(([name]) => name).sort()).toEqual(generated);
   });
+
+  it.each(PROVIDERS)(
+    "serializes the %s provider without a non-serializable built-in",
+    async (_name, provider) => {
+      const text = await serialize(provider);
+      const offenders = SLOTTED_BUILTINS.filter((name) =>
+        text.includes(`global.${name}.prototype.`),
+      );
+      expect(
+        offenders,
+        `the serialized closure captured ${offenders.join(", ")}. Pulumi rebuilds these as plain ` +
+          `objects, so calling a method on one throws at deploy time. Use an array or a plain ` +
+          `object at module scope, or build the value inside the function body.`,
+      ).toEqual([]);
+    },
+  );
 });
