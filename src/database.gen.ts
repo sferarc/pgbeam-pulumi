@@ -55,7 +55,7 @@ function toApiPoolConfig(c: Record<string, unknown> | undefined) {
     pool_size: Number(c.poolSize),
     min_pool_size: Number(c.minPoolSize),
     pool_mode: c.poolMode as "session" | "transaction" | "statement",
-    max_active: Number(c.maxActive),
+    max_active: c.maxActive as number | undefined,
   };
 }
 

@@ -22,7 +22,7 @@ export interface CidrEntryArgs {
 function toApiCidrEntry(c: Record<string, unknown>) {
   return {
     cidr: String(c.cidr),
-    label: String(c.label),
+    label: c.label as string | undefined,
   };
 }
 
@@ -132,7 +132,7 @@ function toApiPoolConfig(c: Record<string, unknown> | undefined) {
     pool_size: Number(c.poolSize),
     min_pool_size: Number(c.minPoolSize),
     pool_mode: c.poolMode as "session" | "transaction" | "statement",
-    max_active: Number(c.maxActive),
+    max_active: c.maxActive as number | undefined,
   };
 }
 
@@ -190,8 +190,8 @@ export const projectProvider: pulumi.dynamic.ResourceProvider = {
               | undefined,
             role: database.role as "primary" | "replica" | undefined,
             pool_region: database.poolRegion as string | undefined,
-            query_timeout_ms: Number(database.queryTimeoutMs),
-            auto_read_routing: Boolean(database.autoReadRouting),
+            query_timeout_ms: database.queryTimeoutMs as number | undefined,
+            auto_read_routing: database.autoReadRouting as boolean | undefined,
             cache_config: toApiCacheConfig(
               database.cacheConfig as Record<string, unknown> | undefined,
             ),
