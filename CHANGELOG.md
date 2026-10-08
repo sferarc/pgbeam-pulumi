@@ -1,5 +1,15 @@
 # @pgbeam/pulumi
 
+## 0.1.45
+
+### Patch Changes
+
+- b996a1b: An `allowedCidrs` entry without a `label` no longer stores the label "undefined", and an unset `poolConfig.maxActive`, `queryTimeoutMs` or `autoReadRouting` is now left out of the request instead of being sent as `null` or `false`.
+- Updated dependencies [eb77c5f]
+- Updated dependencies [9d6807d]
+- Updated dependencies [d92dcdb]
+  - pgbeam@0.4.20
+
 ## 0.1.44
 
 ### Patch Changes
