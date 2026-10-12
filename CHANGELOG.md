@@ -1,5 +1,11 @@
 # @pgbeam/pulumi
 
+## 0.1.47
+
+### Patch Changes
+
+- c1888e5: Release the AnomalyRule and ApprovalRule resources, which were added without a provider version bump.
+
 ## 0.1.46
 
 ### Patch Changes

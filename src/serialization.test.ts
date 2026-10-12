@@ -6,6 +6,7 @@ import * as pulumi from "@pulumi/pulumi";
 import { describe, expect, it } from "vitest";
 import { agentCredentialProvider } from "./agentCredential.gen.js";
 import { anomalyRuleProvider } from "./anomalyRule.gen.js";
+import { approvalRuleProvider } from "./approvalRule.gen.js";
 import { cacheRuleProvider } from "./cacheRule.gen.js";
 import { customDomainProvider } from "./customDomain.gen.js";
 import { databaseProvider } from "./database.gen.js";
@@ -115,6 +116,7 @@ describe("dynamic provider closure serialization", () => {
     ["selfHostEnrollment", selfHostEnrollmentProvider],
     ["honeytoken", honeytokenProvider],
     ["anomalyRule", anomalyRuleProvider],
+    ["approvalRule", approvalRuleProvider],
   ];
 
   // The table above is hand-maintained and the generator does not know about it,

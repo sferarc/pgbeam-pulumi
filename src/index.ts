@@ -4,6 +4,7 @@ export type {
   AgentCredential as AgentCredentialData,
   AnomalyMetricKey as AnomalyMetric,
   AnomalyRule as AnomalyRuleData,
+  ApprovalRule as ApprovalRuleData,
   CacheConfig,
   CacheRuleEntry,
   CidrEntry,
@@ -30,6 +31,7 @@ export type {
 } from "pgbeam";
 export { AgentCredential, type AgentCredentialArgs } from "./agentCredential.gen.js";
 export { AnomalyRule, type AnomalyRuleArgs } from "./anomalyRule.gen.js";
+export { ApprovalRule, type ApprovalRuleArgs } from "./approvalRule.gen.js";
 export { CacheRule, type CacheRuleArgs } from "./cacheRule.gen.js";
 export { CustomDomain, type CustomDomainArgs, verifyCustomDomain } from "./customDomain.gen.js";
 export {
