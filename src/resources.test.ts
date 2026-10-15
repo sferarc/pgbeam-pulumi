@@ -20,6 +20,7 @@ vi.mock("@pulumi/pulumi", () => {
       get: vi.fn().mockReturnValue(undefined),
     })),
     Output: { create: vi.fn((v: unknown) => v) },
+    secret: vi.fn((v: unknown) => ({ get: () => v })),
     dynamic: { Resource: DynamicResource },
     log: { info: vi.fn(), warn: vi.fn() },
     Input: {},

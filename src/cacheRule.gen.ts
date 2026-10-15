@@ -105,7 +105,8 @@ export const cacheRuleProvider: pulumi.dynamic.ResourceProvider = {
       } while (!found && pageToken);
 
       if (!found) {
-        throw new Error(`CacheRule ${id} not found`);
+        console.warn(`CacheRule ${id} no longer exists; removing it from state.`);
+        return {};
       }
 
       return {
@@ -119,6 +120,11 @@ export const cacheRuleProvider: pulumi.dynamic.ResourceProvider = {
       if (isApiUnreachable(err)) {
         warnRefreshSkipped("CacheRule", id, err);
         return { id, props };
+      }
+
+      if (apiErrorStatus(err) === 404) {
+        console.warn(`CacheRule ${id} no longer exists; removing it from state.`);
+        return {};
       }
 
       handleApiError("read", "CacheRule", err);

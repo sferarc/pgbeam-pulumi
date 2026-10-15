@@ -227,30 +227,35 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
         return { id, props };
       }
 
-      if (apiErrorStatus(err) === 404 && props.name) {
-        const list = (await api.policies.listPolicyProfiles({
-          pathParams: { project_id: String(props.projectId) },
-          queryParams: { page_size: 100 },
-        })) as { policies: PolicyProfileData[] };
-        const matchName = String(props.name);
-        const existing = list.policies.find((p) => p.name === matchName);
-        if (existing) {
-          console.info(
-            `Re-adopting policyProfile "${matchName}" (${existing.id}) during read after out-of-band deletion`,
-          );
-          return {
-            id: existing.id,
-            props: stripUndefined({
-              ...props,
-              ...policyProfileToState(existing),
-            }),
-          };
+      if (apiErrorStatus(err) === 404) {
+        if (props.name) {
+          const matchName = String(props.name);
+          let pageToken: string | undefined;
+          do {
+            const page = (await api.policies.listPolicyProfiles({
+              pathParams: { project_id: String(props.projectId) },
+              queryParams: { page_size: 100, ...(pageToken ? { page_token: pageToken } : {}) },
+            })) as { policies: PolicyProfileData[]; next_page_token?: string };
+            const existing = page.policies.find((p) => p.name === matchName);
+            if (existing) {
+              console.info(
+                `Re-adopting policyProfile "${matchName}" (${existing.id}) during read after out-of-band deletion`,
+              );
+              return {
+                id: existing.id,
+                props: stripUndefined({
+                  ...props,
+                  ...policyProfileToState(existing),
+                }),
+              };
+            }
+            pageToken = page.next_page_token;
+          } while (pageToken);
         }
-        console.warn(
-          `PolicyProfile "${matchName}" (${id}) not found during read — it may have been deleted out-of-band.`,
-        );
-        return { id, props };
+        console.warn(`PolicyProfile ${id} no longer exists; removing it from state.`);
+        return {};
       }
+
       handleApiError("read", "PolicyProfile", err);
     }
   },

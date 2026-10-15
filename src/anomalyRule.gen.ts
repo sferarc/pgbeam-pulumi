@@ -98,6 +98,11 @@ export const anomalyRuleProvider: pulumi.dynamic.ResourceProvider = {
         return { id, props };
       }
 
+      if (apiErrorStatus(err) === 404) {
+        console.warn(`AnomalyRule ${id} no longer exists; removing it from state.`);
+        return {};
+      }
+
       handleApiError("read", "AnomalyRule", err);
     }
   },

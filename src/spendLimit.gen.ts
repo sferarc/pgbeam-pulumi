@@ -113,6 +113,11 @@ export const spendLimitProvider: pulumi.dynamic.ResourceProvider = {
         return { id, props };
       }
 
+      if (apiErrorStatus(err) === 404) {
+        console.warn(`SpendLimit ${id} no longer exists; removing it from state.`);
+        return {};
+      }
+
       handleApiError("read", "SpendLimit", err);
     }
   },

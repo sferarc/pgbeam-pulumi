@@ -88,7 +88,8 @@ export const selfHostEnrollmentProvider: pulumi.dynamic.ResourceProvider = {
       } while (!found && pageToken);
 
       if (!found) {
-        throw new Error(`SelfHostEnrollment ${id} not found`);
+        console.warn(`SelfHostEnrollment ${id} no longer exists; removing it from state.`);
+        return {};
       }
 
       return {
@@ -102,6 +103,11 @@ export const selfHostEnrollmentProvider: pulumi.dynamic.ResourceProvider = {
       if (isApiUnreachable(err)) {
         warnRefreshSkipped("SelfHostEnrollment", id, err);
         return { id, props };
+      }
+
+      if (apiErrorStatus(err) === 404) {
+        console.warn(`SelfHostEnrollment ${id} no longer exists; removing it from state.`);
+        return {};
       }
 
       handleApiError("read", "SelfHostEnrollment", err);

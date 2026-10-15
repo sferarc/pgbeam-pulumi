@@ -139,30 +139,35 @@ export const webhookEndpointProvider: pulumi.dynamic.ResourceProvider = {
         return { id, props };
       }
 
-      if (apiErrorStatus(err) === 404 && props.url) {
-        const list = (await api.webhooks.listWebhookEndpoints({
-          pathParams: { project_id: String(props.projectId) },
-          queryParams: { page_size: 100 },
-        })) as { webhooks: WebhookEndpointData[] };
-        const matchName = String(props.url);
-        const existing = list.webhooks.find((p) => p.url === matchName);
-        if (existing) {
-          console.info(
-            `Re-adopting webhookEndpoint "${matchName}" (${existing.id}) during read after out-of-band deletion`,
-          );
-          return {
-            id: existing.id,
-            props: stripUndefined({
-              ...props,
-              ...webhookEndpointToState(existing),
-            }),
-          };
+      if (apiErrorStatus(err) === 404) {
+        if (props.url) {
+          const matchName = String(props.url);
+          let pageToken: string | undefined;
+          do {
+            const page = (await api.webhooks.listWebhookEndpoints({
+              pathParams: { project_id: String(props.projectId) },
+              queryParams: { page_size: 100, ...(pageToken ? { page_token: pageToken } : {}) },
+            })) as { webhooks: WebhookEndpointData[]; next_page_token?: string };
+            const existing = page.webhooks.find((p) => p.url === matchName);
+            if (existing) {
+              console.info(
+                `Re-adopting webhookEndpoint "${matchName}" (${existing.id}) during read after out-of-band deletion`,
+              );
+              return {
+                id: existing.id,
+                props: stripUndefined({
+                  ...props,
+                  ...webhookEndpointToState(existing),
+                }),
+              };
+            }
+            pageToken = page.next_page_token;
+          } while (pageToken);
         }
-        console.warn(
-          `WebhookEndpoint "${matchName}" (${id}) not found during read — it may have been deleted out-of-band.`,
-        );
-        return { id, props };
+        console.warn(`WebhookEndpoint ${id} no longer exists; removing it from state.`);
+        return {};
       }
+
       handleApiError("read", "WebhookEndpoint", err);
     }
   },

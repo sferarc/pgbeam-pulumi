@@ -7,6 +7,8 @@ vi.mock("@pulumi/pulumi", () => ({
   Config: vi.fn().mockImplementation(() => ({
     get: vi.fn().mockReturnValue(undefined),
   })),
+  // Deploy-time shape of a captured Output: the provider host reads it with get().
+  secret: vi.fn((v: unknown) => ({ get: () => v })),
 }));
 
 // Record the options the provider hands to the SDK client, so the retry and

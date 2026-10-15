@@ -13,7 +13,7 @@ import { databaseProvider } from "./database.gen.js";
 import { honeytokenProvider } from "./honeytoken.gen.js";
 import { policyProfileProvider } from "./policyProfile.gen.js";
 import { projectProvider } from "./project.gen.js";
-import { apiErrorStatus, isApiUnreachable } from "./provider.js";
+import { apiErrorStatus, configure, createClient, isApiUnreachable } from "./provider.js";
 import { replicaProvider } from "./replica.gen.js";
 import { selfHostEnrollmentProvider } from "./selfHostEnrollment.gen.js";
 import { spendLimitProvider } from "./spendLimit.gen.js";
@@ -149,4 +149,30 @@ describe("dynamic provider closure serialization", () => {
       ).toEqual([]);
     },
   );
+
+  // Pulumi stores `__provider` in stack state as readable text unless the
+  // closure captured a secret, in which case the whole field is encrypted.
+  it.each(PROVIDERS)(
+    "keeps a configure() API key out of plaintext state for the %s provider",
+    async (_name, provider) => {
+      const canary = "pgb_canary_3f9c2e7d1a";
+      configure({ apiKey: canary });
+      const { text, containsSecrets } = await pulumi.runtime.serializeFunction(() => provider, {
+        allowSecrets: true,
+      });
+      expect(text.includes(canary) && !containsSecrets).toBe(false);
+    },
+  );
+
+  it("resolves a configure() API key after a round trip", async () => {
+    const saved = process.env.PGBEAM_API_KEY;
+    delete process.env.PGBEAM_API_KEY;
+    try {
+      configure({ apiKey: "pgb_roundtrip", baseUrl: "https://api.test.example" });
+      const rt = await roundTrip({ createClient });
+      expect(() => rt.createClient()).not.toThrow();
+    } finally {
+      if (saved !== undefined) process.env.PGBEAM_API_KEY = saved;
+    }
+  });
 });

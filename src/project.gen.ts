@@ -260,30 +260,39 @@ export const projectProvider: pulumi.dynamic.ResourceProvider = {
         return { id, props };
       }
 
-      if (apiErrorStatus(err) === 404 && props.name) {
-        const orgId = String(props.orgId);
-        const list = (await api.projects.listProjects({
-          queryParams: { org_id: orgId, page_size: 100 },
-        })) as { projects: ProjectData[] };
-        const matchName = String(props.name);
-        const existing = list.projects.find((p) => p.name === matchName);
-        if (existing) {
-          console.info(
-            `Re-adopting project "${matchName}" (${existing.id}) during read after out-of-band deletion`,
-          );
-          return {
-            id: existing.id,
-            props: stripUndefined({
-              ...props,
-              ...projectToState(existing),
-            }),
-          };
+      if (apiErrorStatus(err) === 404) {
+        if (props.name) {
+          const orgId = String(props.orgId);
+          const matchName = String(props.name);
+          let pageToken: string | undefined;
+          do {
+            const page = (await api.projects.listProjects({
+              queryParams: {
+                org_id: orgId,
+                page_size: 100,
+                ...(pageToken ? { page_token: pageToken } : {}),
+              },
+            })) as { projects: ProjectData[]; next_page_token?: string };
+            const existing = page.projects.find((p) => p.name === matchName);
+            if (existing) {
+              console.info(
+                `Re-adopting project "${matchName}" (${existing.id}) during read after out-of-band deletion`,
+              );
+              return {
+                id: existing.id,
+                props: stripUndefined({
+                  ...props,
+                  ...projectToState(existing),
+                }),
+              };
+            }
+            pageToken = page.next_page_token;
+          } while (pageToken);
         }
-        console.warn(
-          `Project "${matchName}" (${id}) not found during read — it may have been deleted out-of-band.`,
-        );
-        return { id, props };
+        console.warn(`Project ${id} no longer exists; removing it from state.`);
+        return {};
       }
+
       handleApiError("read", "Project", err);
     }
   },

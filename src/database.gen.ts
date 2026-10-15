@@ -189,6 +189,11 @@ export const databaseProvider: pulumi.dynamic.ResourceProvider = {
         return { id, props };
       }
 
+      if (apiErrorStatus(err) === 404) {
+        console.warn(`Database ${id} no longer exists; removing it from state.`);
+        return {};
+      }
+
       handleApiError("read", "Database", err);
     }
   },

@@ -117,30 +117,35 @@ export const agentCredentialProvider: pulumi.dynamic.ResourceProvider = {
         return { id, props };
       }
 
-      if (apiErrorStatus(err) === 404 && props.name) {
-        const list = (await api.agents.listAgentCredentials({
-          pathParams: { project_id: String(props.projectId) },
-          queryParams: { page_size: 100 },
-        })) as { agents: AgentCredentialData[] };
-        const matchName = String(props.name);
-        const existing = list.agents.find((p) => p.name === matchName);
-        if (existing) {
-          console.info(
-            `Re-adopting agentCredential "${matchName}" (${existing.id}) during read after out-of-band deletion`,
-          );
-          return {
-            id: existing.id,
-            props: stripUndefined({
-              ...props,
-              ...agentCredentialToState(existing),
-            }),
-          };
+      if (apiErrorStatus(err) === 404) {
+        if (props.name) {
+          const matchName = String(props.name);
+          let pageToken: string | undefined;
+          do {
+            const page = (await api.agents.listAgentCredentials({
+              pathParams: { project_id: String(props.projectId) },
+              queryParams: { page_size: 100, ...(pageToken ? { page_token: pageToken } : {}) },
+            })) as { agents: AgentCredentialData[]; next_page_token?: string };
+            const existing = page.agents.find((p) => p.name === matchName);
+            if (existing) {
+              console.info(
+                `Re-adopting agentCredential "${matchName}" (${existing.id}) during read after out-of-band deletion`,
+              );
+              return {
+                id: existing.id,
+                props: stripUndefined({
+                  ...props,
+                  ...agentCredentialToState(existing),
+                }),
+              };
+            }
+            pageToken = page.next_page_token;
+          } while (pageToken);
         }
-        console.warn(
-          `AgentCredential "${matchName}" (${id}) not found during read — it may have been deleted out-of-band.`,
-        );
-        return { id, props };
+        console.warn(`AgentCredential ${id} no longer exists; removing it from state.`);
+        return {};
       }
+
       handleApiError("read", "AgentCredential", err);
     }
   },

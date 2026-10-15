@@ -5,6 +5,7 @@ import type { CustomDomain as CustomDomainData } from "pgbeam";
 import {
   apiErrorStatus,
   createClient,
+  createProgramClient,
   handleApiError,
   isApiUnreachable,
   warnRefreshSkipped,
@@ -99,7 +100,8 @@ export const customDomainProvider: pulumi.dynamic.ResourceProvider = {
       } while (!found && pageToken);
 
       if (!found) {
-        throw new Error(`CustomDomain ${id} not found`);
+        console.warn(`CustomDomain ${id} no longer exists; removing it from state.`);
+        return {};
       }
 
       return {
@@ -113,6 +115,11 @@ export const customDomainProvider: pulumi.dynamic.ResourceProvider = {
       if (isApiUnreachable(err)) {
         warnRefreshSkipped("CustomDomain", id, err);
         return { id, props };
+      }
+
+      if (apiErrorStatus(err) === 404) {
+        console.warn(`CustomDomain ${id} no longer exists; removing it from state.`);
+        return {};
       }
 
       handleApiError("read", "CustomDomain", err);
@@ -197,7 +204,7 @@ export async function verifyCustomDomain(
   projectId: string,
   domainId: string,
 ): Promise<{ verified: boolean; error?: string }> {
-  const api = createClient();
+  const api = await createProgramClient();
   const result = await api.projects.verifyCustomDomain({
     pathParams: {
       project_id: projectId,

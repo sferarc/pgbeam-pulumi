@@ -91,7 +91,8 @@ export const replicaProvider: pulumi.dynamic.ResourceProvider = {
       } while (!found && pageToken);
 
       if (!found) {
-        throw new Error(`Replica ${id} not found`);
+        console.warn(`Replica ${id} no longer exists; removing it from state.`);
+        return {};
       }
 
       return {
@@ -105,6 +106,11 @@ export const replicaProvider: pulumi.dynamic.ResourceProvider = {
       if (isApiUnreachable(err)) {
         warnRefreshSkipped("Replica", id, err);
         return { id, props };
+      }
+
+      if (apiErrorStatus(err) === 404) {
+        console.warn(`Replica ${id} no longer exists; removing it from state.`);
+        return {};
       }
 
       handleApiError("read", "Replica", err);

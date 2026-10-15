@@ -23,7 +23,10 @@ interface ResolvedConfig {
   baseUrl: string;
 }
 
-let globalConfig: ResolvedConfig | undefined;
+// A secret Output so that when a provider closure captures it, Pulumi marks the
+// serialized `__provider` secret and encrypts it in stack state. A plain object
+// here would put the API key in state as readable text.
+let globalConfig: pulumi.Output<ResolvedConfig> | undefined;
 
 const DEFAULT_BASE_URL = "https://api.pgbeam.com";
 
@@ -79,20 +82,26 @@ const TRANSPORT_ERROR_NAMES: readonly string[] = ["NetworkError", "AbortError", 
 
 /**
  * Configure the PgBeam provider globally. Call this once in your Pulumi program
- * before creating any PgBeam resources, or use the PGBEAM_API_KEY and
- * PGBEAM_API_URL environment variables.
+ * before creating any PgBeam resources. Prefer the `pgbeam:apiKey` secret stack
+ * config or the PGBEAM_API_KEY environment variable; when you do call this, pass
+ * the key from a secret source such as `config.requireSecret()`, not a literal.
  */
-export function configure(args: { apiKey: string; baseUrl?: string }): void {
-  globalConfig = {
+export function configure(args: { apiKey: pulumi.Input<string>; baseUrl?: string }): void {
+  globalConfig = pulumi.secret({
     apiKey: args.apiKey,
     baseUrl: args.baseUrl ?? DEFAULT_BASE_URL,
-  };
+  });
 }
 
 /** @internal Resolve provider config from explicit config or environment. */
 function getConfig(): ResolvedConfig {
-  if (globalConfig) return globalConfig;
+  // Providers only run deserialized in the dynamic provider host, where a
+  // captured Output is a plain value holder and `get()` is allowed.
+  if (globalConfig) return globalConfig.get();
+  return getEnvConfig();
+}
 
+function getEnvConfig(): ResolvedConfig {
   const config = new pulumi.Config("pgbeam");
   const apiKey = config.get("apiKey") ?? process.env.PGBEAM_API_KEY;
   const baseUrl = config.get("baseUrl") ?? process.env.PGBEAM_API_URL ?? DEFAULT_BASE_URL;
@@ -106,9 +115,7 @@ function getConfig(): ResolvedConfig {
   return { apiKey, baseUrl };
 }
 
-/** @internal Create a PgBeam API client from current config. */
-export function createClient(): ApiClient {
-  const cfg = getConfig();
+function buildClient(cfg: ResolvedConfig): ApiClient {
   const client = new PgBeamClient({
     token: cfg.apiKey,
     baseUrl: cfg.baseUrl,
@@ -116,6 +123,30 @@ export function createClient(): ApiClient {
     timeoutMs: REQUEST_TIMEOUT_MS,
   });
   return client.api;
+}
+
+/** @internal Create a PgBeam API client from current config. Provider host only. */
+export function createClient(): ApiClient {
+  return buildClient(getConfig());
+}
+
+/**
+ * @internal Create a client from a Pulumi program, where `Output.get()` throws
+ * during update or preview, so a `configure()` key is awaited instead.
+ */
+export async function createProgramClient(): Promise<ApiClient> {
+  if (globalConfig) {
+    const output = globalConfig;
+    // apply() never fires for an unknown Output, so a preview would hang.
+    if (pulumi.runtime.isDryRun()) {
+      const known = await (output as unknown as { isKnown: Promise<boolean> }).isKnown;
+      if (!known) {
+        throw new Error("PgBeam: the configure() API key is not known during preview.");
+      }
+    }
+    return buildClient(await new Promise<ResolvedConfig>((resolve) => output.apply(resolve)));
+  }
+  return buildClient(getEnvConfig());
 }
 
 /**
