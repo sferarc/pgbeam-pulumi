@@ -22,6 +22,9 @@ export type {
   PoolModeKey as PoolMode,
   Project as ProjectData,
   ProjectStatusKey as ProjectStatus,
+  QueryTemplate as QueryTemplateData,
+  QueryTemplateParam,
+  QueryTemplateStatementKindKey as QueryTemplateStatementKind,
   Replica as ReplicaData,
   RowFilter,
   SelfHostEnrollment as SelfHostEnrollmentData,
@@ -55,6 +58,11 @@ export {
   type ProjectDatabaseArgs,
 } from "./project.gen.js";
 export { configure } from "./provider.js";
+export {
+  QueryTemplate,
+  type QueryTemplateArgs,
+  type QueryTemplateParamArgs,
+} from "./queryTemplate.gen.js";
 export { Replica, type ReplicaArgs } from "./replica.gen.js";
 export { SelfHostEnrollment, type SelfHostEnrollmentArgs } from "./selfHostEnrollment.gen.js";
 export { SpendLimit, type SpendLimitArgs } from "./spendLimit.gen.js";

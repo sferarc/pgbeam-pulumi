@@ -1,5 +1,53 @@
 # @pgbeam/pulumi
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [0cf6810]
+  - pgbeam@0.7.1
+
+## 0.3.0
+
+### Minor Changes
+
+- 796f4a7: Policy profiles carry `query_mode` (`sql` or `templates`). A profile set to `templates` admits only the project's enabled query templates, and every other rule on the profile still applies to what a template runs. Setting `templates` is refused when the project has no enabled template, and while the organization has a live self-hosted enrollment. On update, an omitted `query_mode` keeps the stored mode. In Terraform, Crossplane and Pulumi, removing `query_mode` from a config plans `sql`, and the plan shows that change.
+
+### Patch Changes
+
+- Updated dependencies [796f4a7]
+  - pgbeam@0.7.0
+
+## 0.2.0
+
+### Minor Changes
+
+- d651ca6: Query templates can be declared as code: `pgbeam_query_template`, the Crossplane `QueryTemplate` and the Pulumi `QueryTemplate`. Removing `description`, `include_sql`, `enabled` or `params` from a config resets it to the API default (empty, false, true, none) rather than keeping the last value. The query template input's `description` now declares its default (empty) in the contract, which is what the API already stored for an omitted one. Nothing restricts a credential to templates yet: the policy profile setting that does arrives in a later release.
+
+### Patch Changes
+
+- Updated dependencies [5dbe64b]
+- Updated dependencies [b2fdcfd]
+- Updated dependencies [21e87a0]
+- Updated dependencies [d651ca6]
+- Updated dependencies [ca0bb93]
+  - pgbeam@0.6.0
+
+## 0.1.48
+
+### Patch Changes
+
+- 2d61633: An API key passed to `configure()` is now captured as a Pulumi secret, so the serialized provider in each resource's `__provider` state is encrypted instead of holding the key as readable text. `configure()` also accepts a secret `Output`, for example `config.requireSecret("pgbeamApiKey")`. `verifyCustomDomain` still works after `configure()`: it resolves the key asynchronously instead of reading it synchronously, which Pulumi forbids during update or preview.
+- 2635ad3: `pulumi refresh` now drops a resource that was deleted outside Pulumi, so the next `pulumi up` recreates it. Before, resources with adoption config kept the stale state forever and the rest failed the refresh. Re-adoption by name now pages through the whole list instead of only the first 100 entries.
+- Updated dependencies [ba058a7]
+- Updated dependencies [acb171b]
+- Updated dependencies [f363bd7]
+- Updated dependencies [94466c2]
+- Updated dependencies [958f25c]
+- Updated dependencies [6cd15fe]
+- Updated dependencies [289e0d3]
+  - pgbeam@0.5.0
+
 ## 0.1.47
 
 ### Patch Changes

@@ -103,6 +103,8 @@ export interface PolicyProfileArgs {
   contentScanMode?: pulumi.Input<string>;
   /** Byte budget for one statement's content scan, spanning all values in the result. Values past it are reported unscannable rather than skipped quietly. The budget covers a whole statement, so the statements of one simple-query batch share it rather than each getting a fresh allowance. 0 uses the scanner default (4 MiB), which covers an interactive result set and deliberately does not cover a bulk export. */
   contentScanMaxBytes?: pulumi.Input<number | null>;
+  /** What an agent on this profile may send. sql admits any statement the rest of the profile allows. templates admits only the project's enabled query templates (matched on the parse tree, so spelling and literals in the template's own text count), and refuses everything else with SQLSTATE 42501 and decision rule template_required, MCP query included. A matched template still meets every other rule on this profile: a template narrows what an agent can run and never grants access. The hosted MCP discovery tools (list_tables, describe_table, schema_catalog) keep working under templates. */
+  queryMode?: pulumi.Input<string>;
 }
 
 function policyProfileToState(r: PolicyProfileData) {
@@ -133,6 +135,7 @@ function policyProfileToState(r: PolicyProfileData) {
     maxAffectedRows: r.max_affected_rows ?? null,
     contentScanMode: r.content_scan_mode ?? undefined,
     contentScanMaxBytes: r.content_scan_max_bytes ?? null,
+    queryMode: r.query_mode ?? undefined,
     createdAt: r.created_at ?? undefined,
     updatedAt: r.updated_at ?? undefined,
   };
@@ -172,6 +175,7 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
           max_affected_rows: inputs.maxAffectedRows as number | undefined,
           content_scan_mode: inputs.contentScanMode as "off" | "annotate" | "block" | undefined,
           content_scan_max_bytes: inputs.contentScanMaxBytes as number | undefined,
+          query_mode: inputs.queryMode as "sql" | "templates" | undefined,
         },
       });
 
@@ -284,7 +288,8 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
         news.egressBytesPerDay !== olds.egressBytesPerDay ||
         news.maxAffectedRows !== olds.maxAffectedRows ||
         news.contentScanMode !== olds.contentScanMode ||
-        news.contentScanMaxBytes !== olds.contentScanMaxBytes;
+        news.contentScanMaxBytes !== olds.contentScanMaxBytes ||
+        news.queryMode !== olds.queryMode;
 
       const body: Record<string, unknown> = {};
       body.name = news.name;
@@ -313,6 +318,7 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
       body.max_affected_rows = news.maxAffectedRows;
       body.content_scan_mode = news.contentScanMode;
       body.content_scan_max_bytes = news.contentScanMaxBytes;
+      body.query_mode = news.queryMode;
 
       if (changed) {
         await api.policies.updatePolicyProfile({
@@ -387,6 +393,7 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
       (news.maxAffectedRows ?? 0) !== (olds.maxAffectedRows ?? 0) ||
       news.contentScanMode !== olds.contentScanMode ||
       (news.contentScanMaxBytes ?? 0) !== (olds.contentScanMaxBytes ?? 0) ||
+      news.queryMode !== olds.queryMode ||
       news.projectId !== olds.projectId ||
       replaces.length > 0;
 
@@ -440,6 +447,8 @@ export class PolicyProfile extends pulumi.dynamic.Resource {
   public readonly contentScanMode!: pulumi.Output<string | undefined>;
   /** Byte budget for one statement's content scan, spanning all values in the result. Values past it are reported unscannable rather than skipped quietly. The budget covers a whole statement, so the statements of one simple-query batch share it rather than each getting a fresh allowance. 0 uses the scanner default (4 MiB), which covers an interactive result set and deliberately does not cover a bulk export. */
   public readonly contentScanMaxBytes!: pulumi.Output<number | null>;
+  /** What an agent on this profile may send. sql admits any statement the rest of the profile allows. templates admits only the project's enabled query templates (matched on the parse tree, so spelling and literals in the template's own text count), and refuses everything else with SQLSTATE 42501 and decision rule template_required, MCP query included. A matched template still meets every other rule on this profile: a template narrows what an agent can run and never grants access. The hosted MCP discovery tools (list_tables, describe_table, schema_catalog) keep working under templates. */
+  public readonly queryMode!: pulumi.Output<string | undefined>;
   /** When the policy profile was created. */
   public readonly createdAt!: pulumi.Output<string | undefined>;
   /** When the policy profile was last updated. */

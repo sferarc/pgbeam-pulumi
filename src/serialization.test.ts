@@ -14,6 +14,7 @@ import { honeytokenProvider } from "./honeytoken.gen.js";
 import { policyProfileProvider } from "./policyProfile.gen.js";
 import { projectProvider } from "./project.gen.js";
 import { apiErrorStatus, configure, createClient, isApiUnreachable } from "./provider.js";
+import { queryTemplateProvider } from "./queryTemplate.gen.js";
 import { replicaProvider } from "./replica.gen.js";
 import { selfHostEnrollmentProvider } from "./selfHostEnrollment.gen.js";
 import { spendLimitProvider } from "./spendLimit.gen.js";
@@ -117,6 +118,7 @@ describe("dynamic provider closure serialization", () => {
     ["honeytoken", honeytokenProvider],
     ["anomalyRule", anomalyRuleProvider],
     ["approvalRule", approvalRuleProvider],
+    ["queryTemplate", queryTemplateProvider],
   ];
 
   // The table above is hand-maintained and the generator does not know about it,
