@@ -34,15 +34,15 @@ export interface MaskingRuleArgs {
   table: pulumi.Input<string>;
   /** Column to mask. */
   column: pulumi.Input<string>;
-  /** How to mask. redact replaces with a token, null returns NULL, hash returns a SHA-256 hex. */
-  kind: pulumi.Input<"redact" | "null" | "hash">;
+  /** How to mask. redact replaces with a token, null returns NULL, hash returns a SHA-256 hex, last4 keeps the final four characters behind "****", and email_domain keeps the domain behind "****@". A value too short for last4 or not shaped like an email for email_domain is redacted instead. */
+  kind: pulumi.Input<"redact" | "null" | "hash" | "last4" | "email_domain">;
 }
 
 function toApiMaskingRule(c: Record<string, unknown>) {
   return {
     table: String(c.table),
     column: String(c.column),
-    kind: c.kind as "redact" | "null" | "hash",
+    kind: c.kind as "redact" | "null" | "hash" | "last4" | "email_domain",
   };
 }
 
