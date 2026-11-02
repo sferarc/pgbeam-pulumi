@@ -18,6 +18,8 @@ interface Limits {
   maxConnections: number;
   queriesPerSecond: number;
   bytesPerMonth: number;
+  overagePer1k: number;
+  overagePerGb: number;
   maxQueryShapes: number;
   includedSeats: number;
   maxAgentCredentials: number;
@@ -55,6 +57,8 @@ function spendLimitToState(r: OrganizationPlan) {
           maxConnections: r.limits.max_connections,
           queriesPerSecond: r.limits.queries_per_second,
           bytesPerMonth: r.limits.bytes_per_month,
+          overagePer1k: r.limits.overage_per_1k,
+          overagePerGb: r.limits.overage_per_gb,
           maxQueryShapes: r.limits.max_query_shapes,
           includedSeats: r.limits.included_seats,
           maxAgentCredentials: r.limits.max_agent_credentials,
