@@ -105,6 +105,8 @@ export interface PolicyProfileArgs {
   contentScanMaxBytes?: pulumi.Input<number | null>;
   /** What an agent on this profile may send. sql admits any statement the rest of the profile allows. templates admits only the project's enabled query templates (matched on the parse tree, so spelling and literals in the template's own text count), and refuses everything else with SQLSTATE 42501 and decision rule template_required, MCP query included. A matched template still meets every other rule on this profile: a template narrows what an agent can run and never grants access. The hosted MCP discovery tools (list_tables, describe_table, schema_catalog) keep working under templates. */
   queryMode?: pulumi.Input<string>;
+  /** Functions an agent on this profile may not call, refused with SQLSTATE 42501 and decision rule function_denied. This adds to the proxy's built-in dangerous-function floor, which no profile can relax. Matching is case-insensitive and sees every call in the statement, including inside a CTE, a sub-select or a function argument. A bare entry (recompute) matches the name in every schema. A schema-qualified entry (billing.recompute) matches a call qualified with that schema and also an unqualified call of the same name, since the proxy cannot see where search_path resolves it. A function reached only through an operator, a cast, a view, a trigger or a column default is not matched. A proxy build older than this field ignores it, so the API refuses a non-empty list while the organization has a live self-hosted enrollment. */
+  functionDenylist?: pulumi.Input<pulumi.Input<string>[]>;
 }
 
 function policyProfileToState(r: PolicyProfileData) {
@@ -136,6 +138,7 @@ function policyProfileToState(r: PolicyProfileData) {
     contentScanMode: r.content_scan_mode ?? undefined,
     contentScanMaxBytes: r.content_scan_max_bytes ?? null,
     queryMode: r.query_mode ?? undefined,
+    functionDenylist: r.function_denylist ?? undefined,
     createdAt: r.created_at ?? undefined,
     updatedAt: r.updated_at ?? undefined,
   };
@@ -176,6 +179,7 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
           content_scan_mode: inputs.contentScanMode as "off" | "annotate" | "block" | undefined,
           content_scan_max_bytes: inputs.contentScanMaxBytes as number | undefined,
           query_mode: inputs.queryMode as "sql" | "templates" | undefined,
+          function_denylist: inputs.functionDenylist as string[] | undefined,
         },
       });
 
@@ -289,7 +293,8 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
         news.maxAffectedRows !== olds.maxAffectedRows ||
         news.contentScanMode !== olds.contentScanMode ||
         news.contentScanMaxBytes !== olds.contentScanMaxBytes ||
-        news.queryMode !== olds.queryMode;
+        news.queryMode !== olds.queryMode ||
+        JSON.stringify(news.functionDenylist) !== JSON.stringify(olds.functionDenylist);
 
       const body: Record<string, unknown> = {};
       body.name = news.name;
@@ -319,6 +324,7 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
       body.content_scan_mode = news.contentScanMode;
       body.content_scan_max_bytes = news.contentScanMaxBytes;
       body.query_mode = news.queryMode;
+      body.function_denylist = news.functionDenylist;
 
       if (changed) {
         await api.policies.updatePolicyProfile({
@@ -394,6 +400,7 @@ export const policyProfileProvider: pulumi.dynamic.ResourceProvider = {
       news.contentScanMode !== olds.contentScanMode ||
       (news.contentScanMaxBytes ?? 0) !== (olds.contentScanMaxBytes ?? 0) ||
       news.queryMode !== olds.queryMode ||
+      JSON.stringify(news.functionDenylist) !== JSON.stringify(olds.functionDenylist) ||
       news.projectId !== olds.projectId ||
       replaces.length > 0;
 
@@ -449,6 +456,8 @@ export class PolicyProfile extends pulumi.dynamic.Resource {
   public readonly contentScanMaxBytes!: pulumi.Output<number | null>;
   /** What an agent on this profile may send. sql admits any statement the rest of the profile allows. templates admits only the project's enabled query templates (matched on the parse tree, so spelling and literals in the template's own text count), and refuses everything else with SQLSTATE 42501 and decision rule template_required, MCP query included. A matched template still meets every other rule on this profile: a template narrows what an agent can run and never grants access. The hosted MCP discovery tools (list_tables, describe_table, schema_catalog) keep working under templates. */
   public readonly queryMode!: pulumi.Output<string | undefined>;
+  /** Functions an agent on this profile may not call, refused with SQLSTATE 42501 and decision rule function_denied. This adds to the proxy's built-in dangerous-function floor, which no profile can relax. Matching is case-insensitive and sees every call in the statement, including inside a CTE, a sub-select or a function argument. A bare entry (recompute) matches the name in every schema. A schema-qualified entry (billing.recompute) matches a call qualified with that schema and also an unqualified call of the same name, since the proxy cannot see where search_path resolves it. A function reached only through an operator, a cast, a view, a trigger or a column default is not matched. A proxy build older than this field ignores it, so the API refuses a non-empty list while the organization has a live self-hosted enrollment. */
+  public readonly functionDenylist!: pulumi.Output<string[] | undefined>;
   /** When the policy profile was created. */
   public readonly createdAt!: pulumi.Output<string | undefined>;
   /** When the policy profile was last updated. */
