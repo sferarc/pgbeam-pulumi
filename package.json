@@ -1,6 +1,6 @@
 {
   "name": "@pgbeam/pulumi",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Pulumi provider for PgBeam — manage projects, databases, replicas, domains, and cache rules as infrastructure",
   "type": "module",
   "exports": {
@@ -40,7 +40,7 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "pgbeam": "^0.9.0"
+    "pgbeam": "^0.10.0"
   },
   "peerDependencies": {
     "@pulumi/pulumi": "catalog:peers"
