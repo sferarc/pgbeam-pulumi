@@ -1,7 +1,7 @@
 {
   "name": "@pgbeam/pulumi",
   "version": "0.6.1",
-  "description": "Pulumi provider for PgBeam — manage projects, databases, replicas, domains, and cache rules as infrastructure",
+  "description": "Pulumi provider for PgBeam, a Postgres proxy for safe AI agent access: manage projects, databases, agent credentials and policy profiles as infrastructure",
   "type": "module",
   "exports": {
     ".": {
@@ -25,15 +25,23 @@
     "dist"
   ],
   "keywords": [
+    "ai-agents",
+    "mcp",
+    "database-security",
     "pgbeam",
     "pulumi",
     "infrastructure-as-code",
     "postgresql",
-    "connection-pooling",
-    "query-caching",
     "iac"
   ],
   "homepage": "https://pgbeam.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sferarc/pgbeam-pulumi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sferarc/pgbeam-pulumi/issues"
+  },
   "scripts": {
     "build": "bunchee",
     "typecheck": "tsc --noEmit",
