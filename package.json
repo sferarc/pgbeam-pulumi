@@ -1,6 +1,6 @@
 {
   "name": "@pgbeam/pulumi",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Pulumi provider for PgBeam, a Postgres proxy for safe AI agent access: manage projects, databases, agent credentials and policy profiles as infrastructure",
   "type": "module",
   "exports": {
@@ -48,7 +48,7 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "pgbeam": "^0.10.1"
+    "pgbeam": "^0.10.2"
   },
   "peerDependencies": {
     "@pulumi/pulumi": "catalog:peers"
